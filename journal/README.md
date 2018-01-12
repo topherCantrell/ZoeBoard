@@ -1,5 +1,9 @@
 # Journal
 
+## 1/12/2018
+
+I got the parts for the new and improved Zoe board. Still waiting on the new PCBs.
+
 ## 1/29/2017
 
 The board works. I wired it up and ran the java serial program on it.
