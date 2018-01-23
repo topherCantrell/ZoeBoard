@@ -5,16 +5,16 @@
 You will need the following tools:
 
 ## Soldering Iron
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/iron.jpg" width="100">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/iron.jpg" width="200">
 
 ## Solder
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/solder.jpg" width="100">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/solder.jpg" width="200">
 
 ## Needle Nose Pliers
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/needle.jpg" width="100">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/needle.jpg" width="200">
 
 ## Wire Snips
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/snips.jpg" width="100">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/snips.jpg" width="200">
 
 
 # 74HCT125 Level Shifter
