@@ -48,31 +48,32 @@ The Propeller Mini is the brains -- the controller that drives the LEDs.
 
 TODO change this picture to show long pins through.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct06.jpg" width="400">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct06.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct08.jpg" width="400">
 
   - Place the pin headers into the Zoe board. The long side of the pins goes through to the bottom of the board. 
   - Place the blue propeller board onto the pins. The programming pins will hang over the URL on the board.
   - Now solder the header pins to the top of the blue propeller board and to the bottom of the Zoe board. 
   - Take a break between pins to let the heat drain away. 
-  - Use wire snips to trim the pins on the bottom of the board as shown.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct07.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct08.jpg" width="400">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct07.jpg" width="400">
+
+  - Use wire snips to trim the pins on the bottom of the board as shown. 
 
 # "Buck" DC-DC Converter
 
 The Zoe board needs a steady 5V power supply. The Buck convert connects to the robot battery (12 V) and provide
 a steady 5V supply to the electronics on the Zoe board.
 
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct09.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct10.jpg" width="400">
+
   - Carefully solder the Buck converter's 4 wires through the holes in the Zoe board. 
   - The large red wire will be near "VIN". 
   - The smaller red wire should be near "5V".
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct09.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct10.jpg" width="400">
-
 # Resistors
 
 The Zoe board has five resistors. R1 through R4 are the same value. You will find these four grouped together in a
-tape reel.
+tape reel. R5 is a single resistor with tape nubs on each pin.
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct11.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct12.jpg" width="400">
  
