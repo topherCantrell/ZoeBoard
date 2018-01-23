@@ -4,16 +4,16 @@
 
 You will need the following tools:
 
-## Soldering Iron
+### Soldering Iron
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/iron.jpg" width="200">
 
-## Solder
+### Solder
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/solder.jpg" width="200">
 
-## Needle Nose Pliers
+### Needle Nose Pliers
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/needle.jpg" width="200">
 
-## Wire Snips
+### Wire Snips
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/snips.jpg" width="200">
 
 
@@ -21,10 +21,14 @@ You will need the following tools:
 
 The LED strips need 5V logic signals. The propeller puts out 3.3V. This chip converts the four output lines to 5V.
 
-Place the chip into the holes of the board as shown. Important: the notch in the chip is near the top of the board. 
+  - Place the chip into the holes of the board as shown.
+   
+**Important: the notch in the chip is near the top of the board.** 
+  
 You will need to bend the pins inwards a bit to get them to fit. Use needle nose pliers to bend the pins slightly.
 
-Turn the board over and solder the pins to the board. Take a break every couple of pins to let the heat drain away.
+  - Turn the board over and solder the pins to the board. 
+  - Take a break every couple of pins to let the heat drain away.
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct01.jpg" width="250">
 
