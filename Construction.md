@@ -19,18 +19,17 @@ You will need the following tools:
 
 # 74HCT125 Level Shifter
 
-The LED strips need 5V logic signals. The propeller puts out 3.3V. This chip converts the four output lines to 5V.
+The LED strips need 5V logic signals. The propeller provides 3.3V signals. This chip converts the four output lines to 5V.
 
   - Place the chip into the holes of the board as shown.
+  - You will need to bend the pins inwards a bit to get them to fit. Use needle nose pliers to bend the pins slightly.
    
-**Important: the notch in the chip goes near the top of the board.** 
-  
-You will need to bend the pins inwards a bit to get them to fit. Use needle nose pliers to bend the pins slightly.
+**Important: the notch in the chip goes near the top of the board.**
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct01.jpg" width="300"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct02.jpg" width="400">
 
   - Turn the board over and solder the pins to the board. 
-  - Take a break every couple of pins to let the heat drain away.
+  - Take a break between every couple of pins to let the heat drain away.
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct03.jpg" width="500">
 
@@ -111,13 +110,13 @@ pin goes through the round pad. The LED's flat edge should match the flat edge o
 
 # Connectors
 
-There are four connectors on the right side of the board. These are for the NeoPixel strips. There is a power connector
-on the left side of the board.
+There are four connectors on the right side of the board. These are for the NeoPixel strips. 
+
+The power connector on the left side of the board provides 9V-12V from the robot.
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct16.jpg" width="400">
 
-The connectors you attach have the shorter wires. The matching cables that connect to the robot are shown above the
-board in the photo.
+Each connector has a mate. The connectors you attach to the have the shorter wires. The matching cables that connect to the robot are shown above the board in the photo.
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct17.jpg" width="400">
 
@@ -143,5 +142,3 @@ The serial connector allows the robot to send commands to the Zoe board.
   - Solder the gray wire to S3
   
 The S4 and S5 pads are for future use.
-
-
