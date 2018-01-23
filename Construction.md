@@ -95,7 +95,6 @@ There are two capacitors: C1 and C2. They are the same value.
  - Solder the pins to the bottom of the Zoe board. 
  - Trim the pins flush to the board.
 
-
 # Power LED
 
 The green LED lights up when the Zoe board is powered.
@@ -112,14 +111,37 @@ pin goes through the round pad. The LED's flat edge should match the flat edge o
 
 # Connectors
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct16.jpg">
+There are four connectors on the right side of the board. These are for the NeoPixel strips. There is a power connector
+on the left side of the board.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct17.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct16.jpg" width="400">
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct18.jpg">
+The connectors you attach have the shorter wires. The matching cables that connect to the robot are shown above the
+board in the photo.
+
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct17.jpg" width="400">
+
+  - Solder the four pixel connectors to the right side of the board.
+  - The red wires go in the 5V holes
+  - The green wires go in the data holes (D1, D2, D3, or D4)
+  - The white wires go in the GND hole
+  
+** Note: these holes are much bigger than the wires. You should fill the entire hole with solder. **
+
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct18.jpg" width="400">
+
+  - Turn the board over and trim the wires flush to the board
 
 # Serial Connector
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct19.jpg">
+The serial connector allows the robot to send commands to the Zoe board.
+
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct19.jpg" width="400">
+
+  - Solder the black wire to GND
+  - Solder the white wire to S2
+  - Solder the gray wire to S3
+  
+The S4 and S5 pads are for future use.
 
 
