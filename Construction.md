@@ -27,24 +27,24 @@ The LED strips need 5V logic signals. The propeller puts out 3.3V. This chip con
   
 You will need to bend the pins inwards a bit to get them to fit. Use needle nose pliers to bend the pins slightly.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct01.jpg" width="300"><img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct02.jpg" width="300">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct01.jpg" width="300"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct02.jpg" width="400">
 
   - Turn the board over and solder the pins to the board. 
   - Take a break every couple of pins to let the heat drain away.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct03.jpg" width="300">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct03.jpg">
 
 # Propeller Mini
 
 The Propeller Mini is the brains -- the controller that drives the LEDs.
 
-Push the 4 pin programming connector through the top of the blue propeller board. Turn the propeller board over
-and solder the pins in place. Use wire snips to trim the pins down flush with the board. Watch your eyes! Those
-snipped pins might fly into your face.
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct04.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct05.jpg" width="400">
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct04.jpg">
-
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct05.jpg">
+  - Push the 4 pin programming connector through the top of the blue propeller board. 
+  - Turn the propeller board over and solder the pins in place. 
+  - Use wire snips to trim the pins down flush with the board. 
+  
+**Watch your eyes! Those snipped pins might fly into your face.**
 
 Place the pin headers into the Zoe board. The long side of the pins goes through to the bottom of the board. Place
 the blue propeller board onto the pins. The programming pins will hang over the URL on the board.
