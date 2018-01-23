@@ -46,15 +46,14 @@ The Propeller Mini is the brains -- the controller that drives the LEDs.
   
 **Watch your eyes! Those snipped pins might fly into your face.**
 
-  - Place the pin headers into the Zoe board. The long side of the pins goes through to the bottom of the board. 
-  - Place the blue propeller board onto the pins. The programming pins will hang over the URL on the board.
-  - Now solder the header pins to the top of the blue propeller board and to the bottom of the Zoe board. 
-  - Take a break between pins to let the heat drain away. 
-
 TODO change this picture to show long pins through.
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct06.jpg" width="400">
 
+  - Place the pin headers into the Zoe board. The long side of the pins goes through to the bottom of the board. 
+  - Place the blue propeller board onto the pins. The programming pins will hang over the URL on the board.
+  - Now solder the header pins to the top of the blue propeller board and to the bottom of the Zoe board. 
+  - Take a break between pins to let the heat drain away. 
   - Use wire snips to trim the pins on the bottom of the board as shown.
 
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct07.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct08.jpg" width="400">
@@ -73,38 +72,42 @@ a steady 5V supply to the electronics on the Zoe board.
 # Resistors
 
 The Zoe board has five resistors. R1 through R4 are the same value. You will find these four grouped together in a
-tape reel. Bend the pins and push them through the pads for R1 through R4. The direction doesn't matter -- there is
-no "backwards".
+tape reel.
+
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct11.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct12.jpg" width="400">
+ 
+  - Bend the pins and push them through the pads for R1 through R4. 
+  - The direction doesn't matter -- there is no "backwards".
 
 R5 is the single lone resistor that goes near the top of the board by the Buck converter. 
 
-Solder the pins on the bottom of the Zoe board. Use wire snips to trim the pins.
-
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct11.jpg">
-
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct12.jpg">
+  - Solder the pins on the bottom of the Zoe board. Use wire snips to trim the pins.
 
 # Capacitors
 
-There are two capacitors: C1 and C2. They are the same value. Wiggle the pins through as best you can. They don't fit
-perfectly. The direction doesn't matter -- there is no "backwards".
+There are two capacitors: C1 and C2. They are the same value. 
 
-Solder the pins to the bottom of the Zoe board. Trim the pins.
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct13.jpg" width="400">
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct13.jpg">
+ - Wiggle the pins through as best you can. They don't fit perfectly. 
+ - The direction doesn't matter -- there is no "backwards".
+ - Solder the pins to the bottom of the Zoe board. 
+ - Trim the pins flush to the board.
+
 
 # Power LED
 
 The green LED lights up when the Zoe board is powered.
 
-Push the LED pins through the board. Important: the long pin of the LED goes through the square pad. The short
-pin goes through the round pad. The LED's flat edge should match the flat edge on the symbol on the board.
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct14.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct15.jpg" width="400">
 
-Turn the board over and solder the pins in place. Snip the pins flush.
+  - Push the LED pins through the board. 
+  
+**Important: the long pin of the LED goes through the square pad. The short
+pin goes through the round pad. The LED's flat edge should match the flat edge on the symbol on the board.**
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct14.jpg">
-
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct15.jpg">
+  - Turn the board over and solder the pins in place. 
+  - Snip the pins flush.
 
 # Connectors
 
