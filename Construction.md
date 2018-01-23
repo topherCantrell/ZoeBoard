@@ -1,6 +1,6 @@
 # Building the Zoe Board
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/zoeBoard.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/zoeBoard.jpg" width="500">
 
 TODO show tools here
 
