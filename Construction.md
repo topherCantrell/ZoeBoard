@@ -23,18 +23,17 @@ The LED strips need 5V logic signals. The propeller puts out 3.3V. This chip con
 
   - Place the chip into the holes of the board as shown.
    
-**Important: the notch in the chip is near the top of the board.** 
+**Important: the notch in the chip goes near the top of the board.** 
   
 You will need to bend the pins inwards a bit to get them to fit. Use needle nose pliers to bend the pins slightly.
 
   - Turn the board over and solder the pins to the board. 
   - Take a break every couple of pins to let the heat drain away.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct01.jpg" width="250">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct01.jpg" width="300">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct02.jpg" width="300">
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct02.jpg">
-
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct03.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct03.jpg" width="300">
 
 # Propeller Mini
 
