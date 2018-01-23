@@ -1,8 +1,21 @@
 # Building the Zoe Board
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/zoeBoard.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/zoeBoard.jpg" width="500">
 
-TODO show tools here
+You will need the following tools:
+
+## Soldering Iron
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/iron.jpg" width="100">
+
+## Solder
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/solder.jpg" width="100">
+
+## Needle Nose Pliers
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/needle.jpg" width="100">
+
+## Wire Snips
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/snips.jpg" width="100">
+
 
 # 74HCT125 Level Shifter
 
