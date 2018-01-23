@@ -32,7 +32,7 @@ You will need to bend the pins inwards a bit to get them to fit. Use needle nose
   - Turn the board over and solder the pins to the board. 
   - Take a break every couple of pins to let the heat drain away.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct03.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct03.jpg" width="500">
 
 # Propeller Mini
 
@@ -46,18 +46,17 @@ The Propeller Mini is the brains -- the controller that drives the LEDs.
   
 **Watch your eyes! Those snipped pins might fly into your face.**
 
-Place the pin headers into the Zoe board. The long side of the pins goes through to the bottom of the board. Place
-the blue propeller board onto the pins. The programming pins will hang over the URL on the board.
-
-Now solder the header pins to the top of the blue propeller board and to the bottom of the Zoe board. Take a break
-between pins to let the heat drain away. Use wire snips to trim the pins on the bottom of the board as shown.
+  - Place the pin headers into the Zoe board. The long side of the pins goes through to the bottom of the board. 
+  - Place the blue propeller board onto the pins. The programming pins will hang over the URL on the board.
+  - Now solder the header pins to the top of the blue propeller board and to the bottom of the Zoe board. 
+  - Take a break between pins to let the heat drain away. 
 
 TODO change this picture to show long pins through.
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct06.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct06.jpg" width="400">
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct07.jpg">
+  - Use wire snips to trim the pins on the bottom of the board as shown.
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct08.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct07.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct08.jpg" width="400">
 
 # "Buck" DC-DC Converter
 
