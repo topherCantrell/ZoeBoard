@@ -52,6 +52,7 @@ The Propeller Mini is the brains -- the controller that drives the LEDs.
   - Take a break between pins to let the heat drain away. 
 
 TODO change this picture to show long pins through.
+
 <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct06.jpg" width="400">
 
   - Use wire snips to trim the pins on the bottom of the board as shown.
@@ -63,12 +64,11 @@ TODO change this picture to show long pins through.
 The Zoe board needs a steady 5V power supply. The Buck convert connects to the robot battery (12 V) and provide
 a steady 5V supply to the electronics on the Zoe board.
 
-Carefully solder the Buck converter's 4 wires. The large red wire will be near "VIN". The smaller red wire should be
-near "5V".
+  - Carefully solder the Buck converter's 4 wires through the holes in the Zoe board. 
+  - The large red wire will be near "VIN". 
+  - The smaller red wire should be near "5V".
 
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct09.jpg">
-
-<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct10.jpg">
+<img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct09.jpg" width="400"> <img src="https://github.com/team5858/ZoeBoard/blob/master/art/construct10.jpg" width="400">
 
 # Resistors
 
