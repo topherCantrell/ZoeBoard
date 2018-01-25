@@ -6,7 +6,8 @@ Named after the Golden Hurricane students who inspired it.
 
 ## Links
   - [Construction](Construction.md)
-  - [Zoe Programming Language](Zoe.md)
+  - [Zoe Virtual Machine](Zoe.md)
+  - [Zoe Programming Language](ZoeLanguage.md)
 
 ## Hardware
 
