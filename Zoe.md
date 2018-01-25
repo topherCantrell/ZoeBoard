@@ -62,7 +62,3 @@ T = 1 for variable or 0 for constant
 0B                 ; RETURN
 OC OP nn OP        ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 ```
-
-# Language Reference
-
-TODO
