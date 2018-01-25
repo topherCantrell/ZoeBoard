@@ -1,8 +1,8 @@
 # Zoe Board
 
-The Neo Pixel Oreo Board
+The Neo Pixel Processor Board
 
-Named after the young Golden Hurricane students who inspired it.
+Named after the Golden Hurricane students who inspired it.
 
 ## Links
   - [Construction](Construction.md)
