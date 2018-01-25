@@ -1,4 +1,20 @@
+# Overview
 
+The Zoe board runs four independent strips of NeoPixels. Each strip is an independent program running on a separate CPU on the Zoe board. These programs are written in the ```Zoe``` language and compiled to bytecodes for the custom ```ZoeProcessor.spn``` virtual machine.
+
+The RoboRIO sends event strings to the processor board through a serial connection. An event string is the name of a function in the Zoe code. The string is delivered to each of the four running programs. If a program has a function with the same name then the program stops its current routine and jumps to the new routine. All four programs can respond to the same event.
+
+Each program must have a function named "init" that runs when the Zoe board powers up.
+
+You can edit Zoe programs in your favorite IDE.
+
+The ```Zoe.java``` compiler reads text files **D1.zoe**, **D2.zoe**, **D3.zoe**, and **D4.zoe** to produce code for the propeller chip: **ProgramDataD1.spin**, **ProgramDataD2.spin**, **ProgramDataD3.spin**, and **ProgramD4.spin**.
+
+These spin files are then built and downloaded to the Zoe board by the commercial Propeller tool.
+
+We use our HTML page to visually program/simulate pixels on the robot. The page provides four graphical representations and four edit areas for the four areas.
+
+# ZoeProcessor Virtual Machine
 
 ```
 Commands manipulate memory. The PAUSE command initiates a refresh before the pause. This allows the
