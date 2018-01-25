@@ -16,32 +16,41 @@ We use our HTML page to visually program/simulate pixels on the robot. The page 
 
 # ZoeProcessor Virtual Machine
 
+The ZoeProcessor reads bytes from a binary data area. Each binary program has a header structured as follows:
+
 ```
-Commands manipulate memory. The PAUSE command initiates a refresh before the pause. This allows the
-pixel streaming code to reside within the same cog.
+DD LL WW NN       ; 4 bytes of configuration info: out=DD, length=LL, hasWhite=WW, NN=numberOfVariables
+.....             ; 32 byte buffer for event injection (1st byte is the trigger ... set it last)
+.....             ; 64*4 bytes: The pixel color palette
+.....             ; 16*2 bytes: 16 pointers to pixel patterns
+.....             ; 32*2 bytes: 32 slots for the program call stack
+.....             ; LL bytes: Pixel drawing buffer. One byte per pixel (LL pixels)
+.....             ; NN*2: Two bytes of storage for each variable
+```
 
--- HEADER AREA --
+The header is followed by the event pointer table. Each entry is a null terminated string and a two-byte pointer to the code function. The table is terminated with 0.
 
-DD LL WW NN        ; Configuration: out=DD, length=LL, hasWhite=WW, NN=numberOfVariables
-.. .. .. ..        ; 32 bytes for event text input (1st byte is the trigger)
-.. .. .. ..        ; Color palette (64x4 bytes) (word aligned)
-.. .. .. ..        ; 16 two-byte pointers to patterns
-.. .. .. ..        ; 32 call-stack slots
-.. .. .. ..        ; Pixel buffer (1 byte per pixel for LL pixels)
-.. .. .. ..        ; Two bytes for each variable
-"INIT" 00 PP PP    ; Event text, null terminator, pointer
-"PARTY" 00 PP PP   ; Event text, null terminator, pointer
-00                 ; End of event list
+For instance:
+```
+"INIT" 00 PP PP
+"START" 00 PP PP
+00
+```
 
--- OPCODES --
+Commands manipulate the program's memory (in the header). Commands run one after the other without stopping -- excpet for PAUSE.
 
+The PAUSE command first redraws the pixel strip. Then it pauses the program for the given time.
+
+Remember: the only time the pixels are redrawn is at the beginning of the PAUSE command. If your program has no PAUSEs, then nothing will be drawn on the pixels.
+
+# Zoe Virtual Machine Byte Codes
+```
 OP is either a constant or variable:
 T0000000_VVVVVVVV_VVVVVVVV
 T = 1 for variable or 0 for constant
-V = constant (16 bit signed) or variable number
 
-01 NN OP           ; [NN] = OP
-02 NN OP mm OP     ; [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
+01 NN OP           ; Variable assignment: [NN] = OP
+02 NN OP mm OP     ; Math expression: [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
 03 OP              ; PAUSE time=OP
 04 OP OP OP OP OP  ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
 05 OP              ; STRIP.SOLID color=OP
