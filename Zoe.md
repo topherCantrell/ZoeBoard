@@ -43,7 +43,7 @@ The PAUSE command first redraws the pixel strip. Then it pauses the program for 
 
 Remember: the only time the pixels are redrawn is at the beginning of the PAUSE command. If your program has no PAUSEs, then nothing will be drawn on the pixels.
 
-** Zoe Virtual Machine Byte Codes **
+**Zoe Virtual Machine Byte Codes**
 ```
 OP is either a constant or variable:
 T0000000_VVVVVVVV_VVVVVVVV
