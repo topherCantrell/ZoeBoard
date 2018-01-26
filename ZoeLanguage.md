@@ -8,9 +8,9 @@ TODO: functions, init, labels
 
 Variables are global to all functions in a program (but not between separate programs).
 
-Variables are two-byte unsigned values 0-65535.
+Variables are 15-bit unsigned values 0-32767.
 
-You define a variable with the ```var``` keyword like
+You define a variable with the ```var``` keyword like:
 
 ```js
 var color
