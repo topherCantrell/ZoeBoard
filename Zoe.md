@@ -45,7 +45,9 @@ Remember: the only time the pixels are redrawn is at the beginning of the PAUSE 
 
 **Zoe Virtual Machine Byte Codes**
 ```
-OP is three bytes. One byte is used for flags. Two bytes are used for value. If the flags byte is 1 then the value is the index of a variable. If the flags byte is 0 then the value is a signed constant.
+OP is three bytes. The first byte contains flags. The next two bytes are the value. 
+If the flags byte is 1 then the value is the index of a variable. 
+If the flags byte is 0 then the value is a signed constant.
 
 01 NN OPOPOP                          ; Variable assignment: [NN] = OP
 02 NN OPOPOP MM OPOPOP                ; Math expression: [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
