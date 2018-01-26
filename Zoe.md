@@ -45,20 +45,20 @@ Remember: the only time the pixels are redrawn is at the beginning of the PAUSE 
 
 **Zoe Virtual Machine Byte Codes**
 ```
-OP is either a constant or variable:
-T0000000_VVVVVVVV_VVVVVVVV
-T = 1 for variable or 0 for constant
+OP is three bytes. The first byte contains flags. The next two bytes are the value. 
+If the flags byte is 1 then the value is the index of a variable. 
+If the flags byte is 0 then the value is a signed constant.
 
-01 NN OP           ; Variable assignment: [NN] = OP
-02 NN OP mm OP     ; Math expression: [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
-03 OP              ; PAUSE time=OP
-04 OP OP OP OP OP  ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
-05 OP              ; STRIP.SOLID color=OP
-06 OP OP           ; STRIP.SET pixel=OP, color=OP
-07 OP NN WW HH ..  ; PATTERN number=OP, length=NN, width height data ..
-08 OP OP OP OP     ; STRIP.PATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
-09 PP PP           ; GOTO location=PPPP
-0A PP PP           ; GOSUB location=PPPP
-0B                 ; RETURN
-OC OP nn OP        ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
+01 NN OPOPOP                          ; Variable assignment: [NN] = OP
+02 NN OPOPOP MM OPOPOP                ; Math expression: [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
+03 OPOPOP                             ; PAUSE time=OP
+04 OPOPOP OPOPOP OPOPOP OPOPOP OPOPOP ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
+05 OPOPOP                             ; SOLID color=OP
+06 OPOPOP OPOPOP                      ; SET pixel=OP, color=OP
+07 OPOPOP NN WW HH ..                 ; PATTERN number=OP, length=NN, width height data ..
+08 OPOPOP OPOPOP OPOPOP OPOPOP        ; DRAQPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
+09 PP PP                              ; GOTO location=PPPP (16 bit signed offset)
+0A PP PP                              ; GOSUB location=PPPP (16 bit signed offset)
+0B                                    ; RETURN
+OC OPOPOP NN OPOPOP                   ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 ```
