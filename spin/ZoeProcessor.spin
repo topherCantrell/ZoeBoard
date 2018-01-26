@@ -405,6 +405,7 @@ mdiv2                   cmpsub  asm_x,t1        wc
 sdiv32_ret              ret
 
 ReadWord
+' In case it isn't word-aligned
         rdbyte  tmp,programCounter            ' Read ...
         add     programCounter,#1             ' ... MSB
         shl     tmp,#8                        ' Into position
@@ -417,10 +418,11 @@ ReadWord_ret
 ' -------------------------------------------------------------------------------------------------
 
 GetParam
+        rdbyte  t1, programCounter       ' Get the operand flags
+        add     programCounter,#1        ' Bump the program counter
         call    #ReadWord                ' Get the parameter
-        andn    tmp,C_7FFF nr,wz         ' Is the upper bit set?
- if_z   jmp     #GetParam_ret            ' No ... we have the constant
-        and     tmp, C_7FFF              ' Mask off upper bit
+        cmp     t1, #1                   ' Is this a variable reference?
+ if_nz  jmp     #GetParam_ret            ' No ... we have the constant
         shl     tmp, #1                  ' Two bytes each
         add     tmp,variables            ' Pointer to variables
         rdbyte  tmp2, tmp                ' Get ...
@@ -430,6 +432,8 @@ GetParam
         or      tmp, tmp2                ' Combine in tmp
         
 GetParam_ret
+        and     tmp,C_SIGN nr, wz        ' Is the word sign bit set?
+  if_nz or      tmp,C_SIGNEXT            ' Yes ... extend the sign to 32 bits
         ret
            
 ' -------------------------------------------------------------------------------------------------   
@@ -548,6 +552,8 @@ pixCnt           long 0          ' Temporary for pixels in the strip
 tmp              long 0          ' Temporary
 tmp2             long 0          ' Temporary
 '
+C_SIGN           long $00_00_80_00
+C_SIGNEXT        long $FF_FF_00_00
 C_RES            long $4B0         ' Wait count for latching the LEDs
 C_FFFF           long $FFFF        ' Used to mask 2-byte signed numbers
 C_7FFF           long $7FFF        ' Used to mask variable number
