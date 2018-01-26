@@ -45,20 +45,19 @@ Remember: the only time the pixels are redrawn is at the beginning of the PAUSE 
 
 **Zoe Virtual Machine Byte Codes**
 ```
-OP is either a constant or variable:
-T0000000_VVVVVVVV_VVVVVVVV
-T = 1 for variable or 0 for constant
+OP is two bytes. If the upper bit is set then OP is a variable reference (OP is the variable number).
+If OP is cleared then the value is a 15 bit constant.
 
-01 NN OP           ; Variable assignment: [NN] = OP
-02 NN OP mm OP     ; Math expression: [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
-03 OP              ; PAUSE time=OP
-04 OP OP OP OP OP  ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
-05 OP              ; STRIP.SOLID color=OP
-06 OP OP           ; STRIP.SET pixel=OP, color=OP
-07 OP NN WW HH ..  ; PATTERN number=OP, length=NN, width height data ..
-08 OP OP OP OP     ; STRIP.PATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
-09 PP PP           ; GOTO location=PPPP
-0A PP PP           ; GOSUB location=PPPP
-0B                 ; RETURN
-OC OP nn OP        ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
+01 NN OPOP                  ; Variable assignment: [NN] = OP
+02 NN OPOP MM OPOP          ; Math expression: [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
+03 OP                       ; PAUSE time=OP
+04 OPOP OPOP OPOP OPOP OPOP ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
+05 OPOP                     ; SOLID color=OP
+06 OPOP OPOP                ; SET pixel=OP, color=OP
+07 OPOP NN WW HH ..         ; PATTERN number=OP, length=NN, width height data ..
+08 OPOP OPOP OPOP OPOP      ; DRAQPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
+09 PP PP                    ; GOTO location=PPPP (16 bit signed offset)
+0A PP PP                    ; GOSUB location=PPPP (16 bit signed offset)
+0B                          ; RETURN
+OC OP NN OP                 ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 ```
