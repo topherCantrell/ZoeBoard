@@ -8,7 +8,7 @@ TODO: functions, init, labels
 
 Variables are global to all functions in a program (but not between separate programs).
 
-Variables are 15-bit unsigned values 0-32767.
+Variables are 16-bit signed values: -32768 to 32767.
 
 You define a variable with the ```var``` keyword like:
 
@@ -24,19 +24,24 @@ You can define variables anywhere in the program, but the top of the init functi
 
 For instance:
 ```js
-[color] = 1
-[count] = 0
-[delay] = 1000
+color = 1
+count = 0
+delay = 1000
 ```
 
 For instance:
 ```js
-[color] = [count]
-[color] = [count] * 5
-[count] = [count] - 1
+color = count
+color = count * 5
+count = count - 1
 ```
 
-TODO table of operations
+**Operations:**
+  - ```+``` Addition
+  - ```-``` Subtraction
+  - ```*``` Multiplication
+  - ```/``` Division
+  - ```%``` Modulo
 
 # CONFIGURE(out=?,length=?,hasWhite=?)
 
