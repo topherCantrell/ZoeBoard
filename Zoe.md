@@ -48,7 +48,10 @@ Remember: the only time the pixels are redrawn is at the beginning of the PAUSE 
 
 OP: Command operands are 2 bytes. If the most significant bit is set then the operand is a variable reference (see below). 
 If the most significant bit is a zero then the operand is a 15 bit signed constant. 
-Yes -- constants are only 15 bits allowing the upper bit to distinguish variable access. They are 15 bit signed values.
+Yes -- constants are only 15 bits allowing the upper bit to distinguish variable access. They are 15 bit signed values. 
+Bit 14 is extended to bit 15 to make a 16 bit signed value when used.
+
+Constant OP: 0_svvvvvv vvvvvvvv
 
 Variable reference OP: 1_000tttt iiiiiiii
 
@@ -69,7 +72,7 @@ tttt:
 07 OP NN WW HH ..   ; PATTERN number=OP, length=NN, width height data ..
 08 OP OP OP OP      ; DRAQPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
 09 PP PP            ; GOTO location=PPPP (16 bit signed offset)
-0A PP PP NN ..      ; GOSUB location=PPPP (16 bit signed offset), NN=number of parameters passed, parameter bytes ..
+0A PP PP NN ..      ; GOSUB location=PPPP (16 bit signed offset), NN=number of operands passed, operand bytes ..
 0B                  ; RETURN
 OC OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 ```
