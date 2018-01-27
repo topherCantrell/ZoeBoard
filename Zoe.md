@@ -23,7 +23,7 @@ DD LL WW NN       ; 4 bytes of configuration info: out=DD, length=LL, hasWhite=W
 .....             ; 32 byte buffer for event injection (1st byte is the trigger ... set it last)
 .....             ; 64*4 bytes: The pixel color palette
 .....             ; 16*2 bytes: 16 pointers to pixel patterns
-.....             ; 32*2 bytes: 32 slots for the program call stack
+.....             ; 128 bytes: Call stack
 .....             ; LL bytes: Pixel drawing buffer. One byte per pixel (LL pixels)
 .....             ; NN*2: Two bytes of storage for each variable
 ```
@@ -45,20 +45,24 @@ Remember: the only time the pixels are redrawn is at the beginning of the PAUSE 
 
 **Zoe Virtual Machine Byte Codes**
 ```
-OP is three bytes. The first byte contains flags. The next two bytes are the value. 
-If the flags byte is 1 then the value is the index of a variable. 
-If the flags byte is 0 then the value is a signed constant.
 
-01 NN OPOPOP                          ; Variable assignment: [NN] = OP
-02 NN OPOPOP MM OPOPOP                ; Math expression: [NN] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
-03 OPOPOP                             ; PAUSE time=OP
-04 OPOPOP OPOPOP OPOPOP OPOPOP OPOPOP ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
-05 OPOPOP                             ; SOLID color=OP
-06 OPOPOP OPOPOP                      ; SET pixel=OP, color=OP
-07 OPOPOP NN WW HH ..                 ; PATTERN number=OP, length=NN, width height data ..
-08 OPOPOP OPOPOP OPOPOP OPOPOP        ; DRAQPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
-09 PP PP                              ; GOTO location=PPPP (16 bit signed offset)
-0A PP PP                              ; GOSUB location=PPPP (16 bit signed offset)
-0B                                    ; RETURN
-OC OPOPOP NN OPOPOP                   ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
+OP: Command operands are 1 to 3 bytes. The first byte determines what kind of operand it is:
+
+03        ; Read/Write the last stack return value (at sp+2)
+02 NN     ; Read/Write a stack
+01 NN     ; Read/Write a global variable
+00 NN NN  ; Read a 2 byte signed constant
+
+01 OP OP            ; Variable assignment: [OP] = OP
+02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
+03 OP               ; PAUSE time=OP
+04 OP OP OP OP OP   ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
+05 OP               ; SOLID color=OP
+06 OP OP            ; SET pixel=OP, color=OP
+07 OP NN WW HH ..   ; PATTERN number=OP, length=NN, width height data ..
+08 OP OP OP OP      ; DRAQPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
+09 PP PP            ; GOTO location=PPPP (16 bit signed offset)
+0A PP PP NN ..      ; GOSUB location=PPPP (16 bit signed offset), NN=number of parameters passed, parameter bytes ..
+0B                  ; RETURN
+OC OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 ```
