@@ -46,12 +46,19 @@ Remember: the only time the pixels are redrawn is at the beginning of the PAUSE 
 **Zoe Virtual Machine Byte Codes**
 ```
 
-OP: Command operands are 1 to 3 bytes. The first byte determines what kind of operand it is:
+OP: Command operands are 2 bytes. If the most significant bit is set then the operand is a variable reference (see below). 
+If the most significant bit is a zero then the operand is a 15 bit signed constant. 
+Yes -- constants are only 15 bits allowing the upper bit to distinguish variable access. They are 15 bit signed values.
 
-03        ; Read/Write the last stack return value (at sp+2)
-02 NN     ; Read/Write a stack
-01 NN     ; Read/Write a global variable
-00 NN NN  ; Read a 2 byte signed constant
+Variable reference OP: 1_000tttt iiiiiiii
+
+Where tttt is the variable type (see below) and iiiiiiii is the variable index 0-255.
+
+tttt:
+0000 i is a global variable reference
+0001 i is a stack variable reference
+0010 reference the outgoing return value (returned to the calling function). i is ignored.
+0011 reference the incoming return value (returned by the last function called). i is ignored.
 
 01 OP OP            ; Variable assignment: [OP] = OP
 02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
