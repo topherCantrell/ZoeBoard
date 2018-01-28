@@ -44,25 +44,27 @@ The PAUSE command first redraws the pixel strip. Then it pauses the program for 
 Remember: the only time the pixels are redrawn is at the beginning of the PAUSE command. If your program has no PAUSEs, then nothing will be drawn on the pixels.
 
 **Zoe Virtual Machine Byte Codes**
-```
 
 OP: Command operands are 2 bytes. If the most significant bit is set then the operand is a variable reference (see below). 
+
 If the most significant bit is a zero then the operand is a 15 bit signed constant. 
+
 Yes -- constants are only 15 bits allowing the upper bit to distinguish variable access. They are 15 bit signed values. 
 Bit 14 is extended to bit 15 to make a 16 bit signed value when used.
 
-Constant OP: 0_svvvvvv vvvvvvvv
+Constant OP: ```0_svvvvvv vvvvvvvv```
 
-Variable reference OP: 1_000tttt iiiiiiii
+Variable reference OP: ```1_000tttt iiiiiiii```
 
 Where tttt is the variable type (see below) and iiiiiiii is the variable index 0-255.
 
 tttt:
-0000 i is a global variable reference
-0001 i is a stack variable reference
-0010 reference the outgoing return value (returned to the calling function). i is ignored.
-0011 reference the incoming return value (returned by the last function called). i is ignored.
+  - 0000 i is a global variable reference
+  - 0001 i is a stack variable reference
+  - 0010 reference the outgoing return value (returned to the calling function). i is ignored.
+  - 0011 reference the incoming return value (returned by the last function called). i is ignored.
 
+```
 01 OP OP            ; Variable assignment: [OP] = OP
 02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
 03 OP               ; PAUSE time=OP
@@ -72,7 +74,8 @@ tttt:
 07 OP NN WW HH ..   ; PATTERN number=OP, length=NN, width height data ..
 08 OP OP OP OP      ; DRAQPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
 09 PP PP            ; GOTO location=PPPP (16 bit signed offset)
-0A PP PP NN ..      ; GOSUB location=PPPP (16 bit signed offset), NN=number of operands passed, operand bytes ..
+0A PP PP NN LL ..   ; GOSUB location=PPPP (16 bit signed offset), NN=number of values passed, 
+                    ; LL=number of local variables, ..= value words ..
 0B                  ; RETURN
 OC OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 ```
