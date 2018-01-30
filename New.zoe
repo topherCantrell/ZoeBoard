@@ -1,0 +1,27 @@
+
+// This is a comment
+// cool
+
+configure(D1,96,false)
+
+include myFunctions.zoe
+
+var cnt
+var delay
+
+function init() {
+
+   var g
+   
+   g = doStuff(1,x,3)
+
+}
+
+function doStuff(a,b,c) {
+
+  var x = 10
+  var y = 20
+  
+  return a
+  
+}

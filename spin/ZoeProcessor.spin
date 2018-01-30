@@ -37,8 +37,9 @@ ZoeCOG
 
         add     p, #16*2                 ' Skip to ...
         mov     stackPointer,p           ' ... callstack
+        mov     resetStackPtr,p          ' For aborting the stack
 
-        add     p, #32*2                 ' Skip to ...
+        add     p, #64*2                 ' Skip to ...
         mov     variables,p              ' ... variables
 
         mov     c,numVars                ' Two bytes ...
@@ -51,9 +52,7 @@ ZoeCOG
                 
 mainLoop
         rdbyte  c,eventInput wz          ' A new event?        
-  if_nz jmp     #doEvent                 ' Yes ... go start it
-        cmp     running, #1  wz          ' Are we running?
-  if_nz jmp     #mainLoop                ' No ... wait for an event         
+  if_nz jmp     #doEvent                 ' Yes ... go start it                
         mov     c, ONE_MSEC              ' Time to kill for 1 MSec
         add     c, cnt                   ' Offset from now
         waitcnt c,c                      ' Wait for 1 MSec  
@@ -93,6 +92,11 @@ notOp03 djnz    c,#notOp04
         shl     p,#1                          ' Two bytes each
         add     p,variables                   ' Offset into variable table
         call    #GetParam                     ' Get the value
+
+        ' TODO could be storing to
+        ' 03 - current return value
+        ' 02 - stack variable
+        ' 01 - global variable
 store   mov     val,tmp                       ' Write ...
         shr     val,#8                        ' ... the ...
         wrbyte  val,p                         ' ... MSB
@@ -195,6 +199,23 @@ logicOp jmp     #command                      ' PASSES ... next instruction and 
         mov     tmp,p                         ' Offset if failed
         jmp     #doJump                       ' End of IF block and run till pause
 
+' -return-
+' RetVal <--Frame pointer
+' Param1
+' Param2
+' Param3
+'        <--Stack pointer
+
+' Calling a subroutine:
+'  - Push the return address program counter
+'  - Set frame pointer to current stack ptr
+'  - Push 3 zeros (0 return argument)
+'  - Push the call argument bytes on the stack
+'  - Change the program counter
+' Returning from a subroutine:
+'  - Set stack pointer to frame pointer - 3
+'  - Pop the program counter
+
 notOp06 djnz    c,#notOp07
 ' OPCODE 07 mm ll    JSR
         mov     p, programCounter              ' Return is ...
@@ -292,7 +313,7 @@ mapPixel
 wplates
         cmp     bitCnt,#8 wz, wc         ' A whole plate to skip?
  if_ae  add     p2,#64                   ' YES ... add in a plate to pix num
- if_ae  sub     bitCnt,#8                 ' YES ... subtract a plate from the X
+ if_ae  sub     bitCnt,#8                ' YES ... subtract a plate from the X
  if_ae  jmp     #wplates                 ' YES ... keep skipping over plates
         mov     pixCnt,asm_y             ' Each row ...
         shl     pixCnt,#3                ' ... is 8 pixels
@@ -341,13 +362,13 @@ thisWord
 
        ' We found an event handler
 
-        mov     programCounter,p         ' Routine reads from programCounter
-        call    #ReadWord                ' Get the entry address
-        add     tmp,events               ' Offset from the event table
-        mov     programCounter,tmp       ' Start of event handler        
-        wrbyte  ZERO,eventInput          ' Clear the trigger   
-        mov     running,#1               ' Code is now running 
-        jmp     #command                 ' Run till pause
+        mov     programCounter,p            ' Routine reads from programCounter
+        call    #ReadWord                   ' Get the entry address
+        add     tmp,events                  ' Offset from the event table
+        mov     programCounter,tmp          ' Start of event handler
+        mov     stackPointer, resetStackPtr ' Reset the stack        
+        wrbyte  ZERO,eventInput             ' Clear the trigger        
+        jmp     #command                    ' Run till pause
 
 ' -------------------------------------------------------------------------------------------------
 
@@ -404,7 +425,10 @@ mdiv2                   cmpsub  asm_x,t1        wc
                         negc    asm_y,asm_y              
 sdiv32_ret              ret
 
+' -------------------------------------------------------------------------------------------------
+
 ReadWord
+' TODO 
 ' In case it isn't word-aligned
         rdbyte  tmp,programCounter            ' Read ...
         add     programCounter,#1             ' ... MSB
@@ -417,25 +441,57 @@ ReadWord_ret
         
 ' -------------------------------------------------------------------------------------------------
 
+' TODO remove these
 GetParam
-        rdbyte  t1, programCounter       ' Get the operand flags
-        add     programCounter,#1        ' Bump the program counter
-        call    #ReadWord                ' Get the parameter
-        cmp     t1, #1                   ' Is this a variable reference?
- if_nz  jmp     #GetParam_ret            ' No ... we have the constant
-        shl     tmp, #1                  ' Two bytes each
-        add     tmp,variables            ' Pointer to variables
-        rdbyte  tmp2, tmp                ' Get ...
-        add     tmp,#1                   ' ... MSB
-        shl     tmp2,#8                  ' Into MSB
-        rdbyte  tmp, tmp                 ' Get LSB
-        or      tmp, tmp2                ' Combine in tmp
-        
+        call    #GetOpAddr               ' Get the address of the op
+  if_z  jmp     #GetParamC               ' This is constant ... use this value        
+        rdword  t1,tmp                   ' Read the value ?? TODO are these always word aligned? I think they are
+GetParamC
+        TODO
+        ' Sign extend 14 bit
 GetParam_ret
-        and     tmp,C_SIGN nr, wz        ' Is the word sign bit set?
-  if_nz or      tmp,C_SIGNEXT            ' Yes ... extend the sign to 32 bits
         ret
-           
+        
+GetOpAddr        
+        call    #ReadWord                ' Get the parameter
+
+        and     tmp, C_7FFF nr, wz       ' Upper bit set?
+  if_z  jmp     #GetParam_ret            ' No ... exit with Z set
+
+' 0 = global variable
+' 1 = stack variable
+' 2 = outgoing return (return to caller)
+' 3 = incoming return (returned by function)
+
+        and     tmp, C_7FFF wz
+ if_nz  jmp     #nOpGlobal
+        ' TODO
+        or      tmp,#1 nr
+        jmp     #GetOpAddrNZ
+
+nOpGlobal
+        cmp     t1,#1 wz
+ if_nz  jmp     #nOpStack
+        ' TODO
+        or      tmp,#1 nr
+        jmp     #GetOpAddrNZ
+
+nOpStack
+        cmp     t1,#2 wz
+ if_nz  jmp     #nOpOutRet
+        ' TODO
+        or      tmp,#1 nr
+        jmp     #GetOpAddrNZ
+
+nOpOutRet
+        ' Must be incoming return
+        ' TODO
+
+GetOpAddrNZ
+        or      tmp,#1 nr
+GetOpAddr_ret
+        ret  
+             
 ' -------------------------------------------------------------------------------------------------   
 
 ErrorInC
@@ -521,7 +577,6 @@ sendDone_ret                             '
 
 ' -------------------------------------------------------------------------------------------------     
 
-running          long 0          ' 1 if there is an event running
 pauseCounter     long 0          ' number of tics left in pause
 eventInput       long 0          ' Pointer to event input
 patterns         long 0          ' Pointer to patterns
@@ -529,6 +584,8 @@ variables        long 0          ' Pointer to variables
 events           long 0          ' Pointer to events
 programCounter   long 0          ' Current PC
 stackPointer     long 0          ' Current stack pointer
+framePointer     long 0          ' Pointer to local variables on the stack
+resetStackPtr    long 0          ' Start of stack space (to reset the stack ptr)
 par_palette      long 0          ' Color palette (some commands) 
 par_buffer       long 0          ' Pointer to the pixel data buffer
 par_pixCount     long 0          ' Number of pixels
