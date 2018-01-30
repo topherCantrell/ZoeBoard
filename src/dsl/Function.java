@@ -6,6 +6,8 @@ public class Function {
 	
 	String name;
 	List<String> arguments;
+	
+	List<String> localVars;
 
 	public List<CodeLine> codeLines;
 

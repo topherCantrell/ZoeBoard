@@ -1,0 +1,5 @@
+var zoeGlobal
+
+function zoeFunction(x,y) {
+    return 5
+}

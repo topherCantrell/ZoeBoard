@@ -12,6 +12,8 @@ public class Program {
 	
 	String fileName;
 	
+	List<String> vars;
+	
 	List<CodeLine> globalLines;
 	Map<String,Function> functions;
 	
@@ -74,12 +76,20 @@ public class Program {
 			s = removeSpaces(s);
 			c.text = s;
 			
+			if(s.startsWith("include ")) {
+				String incName = s.substring(8);				
+				Program incProg = Program.load(incName);
+				ret.globalLines.addAll(incProg.globalLines);
+				ret.functions.putAll(incProg.functions);
+				continue;
+			}
+			
 			if(s.startsWith("function ")) {
 				if(currentFunction!=null) {
 					if(currentFunction.codeLines.size()==0 || 
 							!currentFunction.codeLines.get(currentFunction.codeLines.size()-1).text.equals("}")) 
 					{
-						throw new RuntimeException("Function '"+currentFunction.name+"' must end with a '}'");
+						throw new CompileException("Function must end with a '}'",c);
 					}
 					currentFunction.codeLines.remove(currentFunction.codeLines.size()-1);
 				}
@@ -87,14 +97,14 @@ public class Program {
 				s = s.substring(9); // Take off "function "
 				i = s.indexOf("(");
 				if(i<0) {
-					throw new RuntimeException("Expected opening parenthesis: "+raw);
+					throw new CompileException("Expected opening parenthesis",c);
 				}
 				int j = s.indexOf(")",i);
 				if(j<0) {
-					throw new RuntimeException("Expected closing parenthesis: "+raw);
+					throw new CompileException("Expected closing parenthesis",c);
 				}
 				if(!s.substring(j+1).equals("{")) {
-					throw new RuntimeException("Expected '{' after ')':"+raw);
+					throw new CompileException("Expected '{' after ')'",c);
 				}
 				currentFunction = new Function();
 				currentFunction.name = s.substring(0,i);
@@ -109,20 +119,18 @@ public class Program {
 				ret.globalLines.add(c);
 			} else {
 				currentFunction.codeLines.add(c);				
-			}
-			
-			
+			}			
 			
 		}
 		
 		if(currentFunction==null) {
-			throw new RuntimeException("Program must have at least one function (init).");
+			throw new CompileException("Program must have at least one function (init)",null);
 		}
 		
 		if(currentFunction.codeLines.size()==0 || 
 				!currentFunction.codeLines.get(currentFunction.codeLines.size()-1).text.equals("}")) 
 		{
-			throw new RuntimeException("Function '"+currentFunction.name+"' must end with a '}'");
+			throw new CompileException("Expected '}' to close last function",null);
 		}
 		currentFunction.codeLines.remove(currentFunction.codeLines.size()-1);
 		
