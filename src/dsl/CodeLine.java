@@ -7,5 +7,9 @@ public class CodeLine {
 	public String originalText;
 	
 	public String text;
+	
+	public String toString() {
+		return "File:"+fileName+" Line:"+lineNumber+" '"+originalText+"'";
+	}
 
 }

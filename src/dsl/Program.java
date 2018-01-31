@@ -10,6 +10,10 @@ import java.util.Map;
 
 public class Program {
 	
+	String configStrip;
+	int configLength;
+	boolean configHasWhite;
+	
 	String fileName;
 	
 	List<String> vars;
@@ -108,6 +112,9 @@ public class Program {
 				}
 				currentFunction = new Function();
 				currentFunction.name = s.substring(0,i);
+				if(ret.functions.containsKey(currentFunction.name)) {
+					throw new CompileException("Function name already exists",c);
+				}
 				ret.functions.put(currentFunction.name, currentFunction);
 				currentFunction.codeLines = new ArrayList<CodeLine>();
 				currentFunction.arguments = new ArrayList<String>();

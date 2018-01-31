@@ -2,7 +2,7 @@
 // This is a comment
 // cool
 
-configure(D1,96,false)
+configure(D51,96,true)
 
 include myFunctions.zoe
 
