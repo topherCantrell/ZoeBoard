@@ -2,7 +2,7 @@
 // This is a comment
 // cool
 
-configure(D51,96,true)
+configure(D1,96,true)
 
 include myFunctions.zoe
 
@@ -40,6 +40,8 @@ function doStuff(a,b,c) {
       y = 4
   }
   
+here:
+
   return a
   
 }

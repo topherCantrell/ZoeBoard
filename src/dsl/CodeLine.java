@@ -8,6 +8,8 @@ public class CodeLine {
 	
 	public String text;
 	
+	public boolean isLabel;
+	
 	public String toString() {
 		return "File:"+fileName+" Line:"+lineNumber+" '"+originalText+"'";
 	}

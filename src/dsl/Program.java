@@ -62,6 +62,7 @@ public class Program {
 		ret.functions = new HashMap<String,Function>();
 		
 		Function currentFunction = null;
+		List<String> currentFunctionLabels = new ArrayList<String>();
 		
 		for(String raw : rawLines) {
 			++lineNumber;
@@ -88,6 +89,23 @@ public class Program {
 				continue;
 			}
 			
+			i = s.indexOf(':');
+			if(i>=0) {
+				if(i!=s.length()-1) {
+					throw new CompileException("Expected ':' to be last on the line",c);
+				}
+				if(currentFunction==null) {
+					throw new CompileException("Global labels are not allowed",c);
+				}
+				s = s.substring(0,s.length()-1);
+				if(currentFunctionLabels.contains(s)) {
+					throw new CompileException("Label '"+s+"' has already been used",c);
+				}
+				currentFunctionLabels.add(s);
+				c.text = s;
+				c.isLabel = true;
+			}
+			
 			if(s.startsWith("function ")) {
 				if(currentFunction!=null) {
 					if(currentFunction.codeLines.size()==0 || 
@@ -97,6 +115,7 @@ public class Program {
 					}
 					currentFunction.codeLines.remove(currentFunction.codeLines.size()-1);
 				}
+				currentFunctionLabels.clear();
 				
 				s = s.substring(9); // Take off "function "
 				i = s.indexOf("(");

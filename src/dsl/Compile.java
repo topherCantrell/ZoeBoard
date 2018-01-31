@@ -17,8 +17,7 @@ public class Compile {
 		
 		// Read the "configure" command
 		readConfigure(prog);
-		
-		// TODO labels
+				
 	}
 	
 	void readConfigure(Program prog) {
