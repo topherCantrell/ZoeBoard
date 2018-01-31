@@ -61,6 +61,49 @@ mainLoop
 command
         rdbyte  c,programCounter         ' Next ... 
         add     programCounter,#1        ' ... opcode
+        cmp     c,#11 wz,wc              ' Valid opcode?
+  if_a  jmp     #comInvalid              ' No ... show the error
+        add     c,#comTable              ' Offset into COM table
+        jmp     c                        ' Execute the command
+
+comINVALID
+        mov     c,#%11110001             ' Unknown ...        
+        jmp     #ErrorInC                ' ... opcode
+        
+comTable
+        jmp     #comASSIGN               ' 0
+        jmp     #comMATH                 ' 1
+        jmp     #comGOTO                 ' 2
+        jmp     #comCALL                 ' 3
+        jmp     #comRETURN               ' 4
+        jmp     #comIF                   ' 5
+        '
+        jmp     #comPAUSE                ' 6
+        jmp     #comDEFCOLOR             ' 7
+        jmp     #comDEFPATTERN           ' 8
+        jmp     #comSETPIXEL             ' 9
+        jmp     #comSOLID                ' 10
+        jmp     #comDRAWPATTERN          ' 11
+
+comASSIGN
+comMATH
+comGOTO
+comCALL
+comRETURN
+comIF
+comPAUSE
+comDEFCOLOR
+comDEFPATTERN
+comSETPIXEL
+comSOLID
+comDRAWPATTERN
+
+        jmp    #mainLoop
+        
+
+        cmp     c,#1 wz
+  if_z  jmp     #comAssign
+        cmp     c,#2
 
 notOp00 djnz    c,#notOp01
 ' OPCODE 01 param  PAUSE(TIME=param)
