@@ -457,8 +457,7 @@ sdiv32_ret              ret
 ' -------------------------------------------------------------------------------------------------
 
 ReadWord
-' TODO 
-' In case it isn't word-aligned
+' In case the pointer isn't word-aligned
         rdbyte  tmp,programCounter            ' Read ...
         add     programCounter,#1             ' ... MSB
         shl     tmp,#8                        ' Into position
@@ -470,16 +469,17 @@ ReadWord_ret
         
 ' -------------------------------------------------------------------------------------------------
 
-' TODO remove these
 GetParam
         call    #GetOpAddr               ' Get the address of the op
   if_z  jmp     #GetParamC               ' This is constant ... use this value        
-        rdword  t1,tmp                   ' Read the value ?? TODO are these always word aligned? I think they are
+        rdword  t1,tmp                   ' Read the value. These are always word-aligned.
 GetParamC
         ' TODO
         ' Sign extend 14 bit
 GetParam_ret
         ret
+
+' -------------------------------------------------------------------------------------------------
         
 GetOpAddr        
         call    #ReadWord                ' Get the parameter
@@ -487,33 +487,32 @@ GetOpAddr
         and     tmp, C_7FFF nr, wz       ' Upper bit set?
   if_z  jmp     #GetParam_ret            ' No ... exit with Z set
 
-' 0 = global variable
-' 1 = stack variable
-' 2 = outgoing return (return to caller)
-' 3 = incoming return (returned by function)
+' Upper bit is set. This is a variable reference:
+'   0 = global variable
+'   1 = stack variable
+'   2 = outgoing return (return to caller)
+'   3 = incoming return (returned by function)
 
         and     tmp, C_7FFF wz
- if_nz  jmp     #nOpGlobal
-        ' TODO
-        or      tmp,#1 nr
+ if_z   jmp     #OpGlobal
+        cmp     tmp, #1 wz
+ if_z   jmp     #OpStackVar
+        cmp     tmp, #2 wz
+ if_z   jmp     #OpOutRet
+
+OpInRet
+        ' TODO                      
         jmp     #GetOpAddrNZ
 
-nOpGlobal
-        cmp     t1,#1 wz
- if_nz  jmp     #nOpStack
+OpGlobal          
         ' TODO
-        or      tmp,#1 nr
         jmp     #GetOpAddrNZ
 
-nOpStack
-        cmp     t1,#2 wz
- if_nz  jmp     #nOpOutRet
+OpStackVar   
         ' TODO
-        or      tmp,#1 nr
         jmp     #GetOpAddrNZ
 
-nOpOutRet
-        ' Must be incoming return
+OpOutRet
         ' TODO
 
 GetOpAddrNZ
