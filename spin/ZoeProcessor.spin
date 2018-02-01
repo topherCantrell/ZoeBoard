@@ -61,8 +61,8 @@ mainLoop
 command
         rdbyte  c,programCounter         ' Next ... 
         add     programCounter,#1        ' ... opcode
-        cmp     c,#11 wz,wc              ' Valid opcode?
-  if_a  jmp     #comInvalid              ' No ... show the error
+        cmp     c,#12 wz,wc              ' Valid opcode?
+  if_a  mov     c,#0                     ' No ... show the error
         add     c,#comTable              ' Offset into COM table
         jmp     c                        ' Execute the command
 
@@ -71,27 +71,42 @@ comINVALID
         jmp     #ErrorInC                ' ... opcode
         
 comTable
-        jmp     #comASSIGN               ' 0
-        jmp     #comMATH                 ' 1
-        jmp     #comGOTO                 ' 2
-        jmp     #comCALL                 ' 3
-        jmp     #comRETURN               ' 4
-        jmp     #comIF                   ' 5
+        jmp     #comINVALID              ' 0    
+        jmp     #comASSIGN               ' 1
+        jmp     #comMATH                 ' 2
+        jmp     #comGOTO                 ' 3
+        jmp     #comCALL                 ' 4
+        jmp     #comRETURN               ' 5
+        jmp     #comIF                   ' 6
         '
-        jmp     #comPAUSE                ' 6
-        jmp     #comDEFCOLOR             ' 7
-        jmp     #comDEFPATTERN           ' 8
-        jmp     #comSETPIXEL             ' 9
-        jmp     #comSOLID                ' 10
-        jmp     #comDRAWPATTERN          ' 11
+        jmp     #comPAUSE                ' 7
+        jmp     #comDEFCOLOR             ' 8
+        jmp     #comDEFPATTERN           ' 9
+        jmp     #comSETPIXEL             ' 10
+        jmp     #comSOLID                ' 11
+        jmp     #comDRAWPATTERN          ' 12
 
 comASSIGN
+' OPCODE 01 paramS paramD : SET(VARIABLE=paramD, VALUE=paramS)
+        call    #GetParam                     ' Get the ...
+store
+        mov     t2,tmp                        ' ... source value
+        call    #GetOpAddr                    ' Destination
+        wrword  t2,tmp                        ' Write the source value to the destination
+        jmp     #Command                      ' Keep running commands until PAUSE
+
+comPAUSE
+' OPCODE 07 paramN : PAUSE(TIME=paramN)
+        call    #GetParam                     ' Get the ...
+        mov     pauseCounter,tmp              ' ... pause counter value
+        call    #UpdateDisplay                ' Draw the display
+        jmp     #mainLoop                     ' Back to wait for pause
+
 comMATH
 comGOTO
 comCALL
 comRETURN
-comIF
-comPAUSE
+comIF   
 comDEFCOLOR
 comDEFPATTERN
 comSETPIXEL
@@ -100,17 +115,7 @@ comDRAWPATTERN
 
         jmp    #mainLoop
         
-
-        cmp     c,#1 wz
-  if_z  jmp     #comAssign
-        cmp     c,#2
-
-notOp00 djnz    c,#notOp01
-' OPCODE 01 param  PAUSE(TIME=param)
-        call    #GetParam                     ' Get the ...
-        mov     pauseCounter,tmp              ' ... pause counter value
-        call    #UpdateDisplay                ' Draw the display
-        jmp     #mainLoop                     ' Back to wait for pause
+        
                 
 notOp01 djnz    c,#notOp02  
 ' OPCODE 02 param param  SET(PIXEL=param,COLOR=param)
@@ -121,30 +126,11 @@ notOp01 djnz    c,#notOp02
         wrbyte  tmp,p                         ' Set the pixel value
         jmp     #command                      ' Run till pause
 
-notOp02 djnz    c,#notOp03
+notOp02 djnz    c,#notOp04
 ' OPCODE 03 offset  GOTO(offset)
 doGoto  call    #ReadWord                     ' Get the relative offset
 doJump  add     programCounter,tmp            ' Add in the jump
         and     programCounter,C_FFFF         ' Mask to a word
-        jmp     #command                      ' Run till pause
-
-notOp03 djnz    c,#notOp04
-' OPCODE 04 nn param SET(VARIABLE=nn, VALUE=param) 
-        rdbyte  p,programCounter              ' Get the ... 
-        add     programCounter,#1             ' ... variable number
-        shl     p,#1                          ' Two bytes each
-        add     p,variables                   ' Offset into variable table
-        call    #GetParam                     ' Get the value
-
-        ' TODO could be storing to
-        ' 03 - current return value
-        ' 02 - stack variable
-        ' 01 - global variable
-store   mov     val,tmp                       ' Write ...
-        shr     val,#8                        ' ... the ...
-        wrbyte  val,p                         ' ... MSB
-        add     p,#1                          ' Write ...
-        wrbyte  tmp,p                         ' ... LSB
         jmp     #command                      ' Run till pause
 
 notOp04 djnz    c,#notOp05
@@ -490,7 +476,7 @@ GetParam
   if_z  jmp     #GetParamC               ' This is constant ... use this value        
         rdword  t1,tmp                   ' Read the value ?? TODO are these always word aligned? I think they are
 GetParamC
-        TODO
+        ' TODO
         ' Sign extend 14 bit
 GetParam_ret
         ret
