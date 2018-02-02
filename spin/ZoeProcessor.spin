@@ -10,8 +10,11 @@ DAT
 ZoeCOG
 
 ' Setup our pointers into the header
+' If space gets tight we can do this in SPIN and have the variables populated when read into the cog
                
         mov     p,par                    ' Header in program data
+
+        ' 4 bytes of config
         
         rdbyte  c,p                      ' Pin number
         add     p,#1                     ' Next byte
@@ -27,29 +30,53 @@ ZoeCOG
 
         rdbyte  numVars,p                ' Number of variables
         add     p,#1                     ' Next byte
-        mov     eventInput,p             ' This is the event-input buffer
 
+        ' 32 bytes for events
+        
+        mov     eventInput,p             ' This is the event-input buffer        
         add     p, #32                   ' Point to the ...
+
+        ' 64*4 bytes for the color palette
+        
         mov     par_palette,p            ' ... color palette
-
         add     p, #64*4                 ' Skip to ...
-        mov     patterns,p               ' ... patterns
 
+        ' 16*2 bytes for the pixel pattern pointers
+        
+        mov     patterns,p               ' ... patterns  
         add     p, #16*2                 ' Skip to ...
+
+        ' 64*2 bytes for the call stack
+        
         mov     stackPointer,p           ' ... callstack
         mov     resetStackPtr,p          ' For aborting the stack
-
         add     p, #64*2                 ' Skip to ...
-        mov     variables,p              ' ... variables
 
+        ' NN*2 bytes for the global variables
+        
+        mov     variables,p              ' ... variables        
         mov     c,numVars                ' Two bytes ...
         shl     c,#1                     ' ... per variable
         add     p,c                      ' Point to ...
+
+        ' 2 bytes for the initial program counter -- this is "function init()"
+        
+        rdword  programCounter,p         ' Initial program counter
+        add     p,#2                     ' Point to ...
+
+        ' LL bytes for the pixel drawing buffer
+        
         mov     par_buffer,p             ' ... pixel buffer
 
+        ' Event table
+        
         add     p,par_pixCount           ' Point to ...
         mov     events,p                 ' ... event table
-                
+
+        jmp     #command                 ' Start the init function
+        
+' -------------------------------------------------------------------------------------------------
+                 
 mainLoop
         rdbyte  c,eventInput wz          ' A new event?        
   if_nz jmp     #doEvent                 ' Yes ... go start it                
@@ -66,12 +93,96 @@ command
         add     c,#comTable              ' Offset into COM table
         jmp     c                        ' Execute the command
 
+' -------------------------------------------------------------------------------------------------
+ReadWord
+' In case the pointer isn't word-aligned
+'  
+' @param programCounter where to read from (incremented here)
+' @return tmp the word
+' @mangles tmp2
+'
+        rdbyte  tmp,programCounter       ' Read ...
+        add     programCounter,#1        ' ... MSB
+        shl     tmp,#8                   ' Into position
+        rdbyte  tmp2,programCounter      ' Read ...
+        add     programCounter,#1        ' ... LSB
+        or      tmp,tmp2                 ' Result is in tmp
+ReadWord_ret
+        ret                                   
+        
+' -------------------------------------------------------------------------------------------------    
+GetParam
+' Read the value of the operand at the program counter
+'
+' @param programCounter where to read from (incremented here)
+' @return tmp 32-bit signed value
+' @mangles tmp2, t1
+'
+        call    #GetOpAddr               ' Get the address of the op
+  if_z  jmp     #GetParamC               ' This is constant ... use this value        
+        rdword  t1,tmp                   ' Read the value. These are always word-aligned.
+GetParamC
+        ' TODO
+        ' Sign extend 14 bit
+GetParam_ret
+        ret
+
+' -------------------------------------------------------------------------------------------------        
+GetOpAddr
+' Get the address of the operand at the program counter
+'
+' @param programCounter where to read from (incremented here)
+' @return tmp pointer to value's address (or value if it is a constant)
+' @return Z set if pointer is the constant value
+' @mangles tmp2, t1
+'
+        call    #ReadWord                ' Get the parameter
+
+        and     tmp, C_7FFF nr, wz       ' Upper bit set?
+  if_z  jmp     #GetParam_ret            ' No ... exit with Z set
+
+' Upper bit is set. This is a variable reference:
+'   0 = global variable
+'   1 = stack variable
+'   2 = outgoing return (return to caller)
+'   3 = incoming return (returned by function)
+
+        and     tmp, C_7FFF wz
+ if_z   jmp     #OpGlobal
+        cmp     tmp, #1 wz
+ if_z   jmp     #OpStackVar
+        cmp     tmp, #2 wz
+ if_z   jmp     #OpOutRet
+
+OpInRet
+        ' TODO word at the current stack pointer +2 (1st slot in last frame)                      
+        jmp     #GetOpAddrNZ
+
+OpGlobal          
+        ' TODO  i variable in the global variables
+        jmp     #GetOpAddrNZ
+
+OpStackVar   
+        ' TODO (i+1) variable in current frame
+        jmp     #GetOpAddrNZ
+
+OpOutRet
+        ' TODO first word in the current frame
+
+GetOpAddrNZ
+        or      tmp,#1 nr
+GetOpAddr_ret
+        ret  
+
+' -------------------------------------------------------------------------------------------------             
+
 comINVALID
         mov     c,#%11110001             ' Unknown ...        
-        jmp     #ErrorInC                ' ... opcode
+        jmp     #ShowErrorInC            ' ... opcode
         
 comTable
-        jmp     #comINVALID              ' 0    
+        jmp     #comINVALID              ' 0
+        '
         jmp     #comASSIGN               ' 1
         jmp     #comMATH                 ' 2
         jmp     #comGOTO                 ' 3
@@ -83,7 +194,7 @@ comTable
         jmp     #comDEFCOLOR             ' 8
         jmp     #comDEFPATTERN           ' 9
         jmp     #comSETPIXEL             ' 10
-        jmp     #comSOLID                ' 11
+        jmp     #comSETSOLID             ' 11
         jmp     #comDRAWPATTERN          ' 12
 
 comASSIGN
@@ -110,7 +221,7 @@ comIF
 comDEFCOLOR
 comDEFPATTERN
 comSETPIXEL
-comSOLID
+comSETSOLID
 comDRAWPATTERN
 
         jmp    #mainLoop
@@ -355,7 +466,7 @@ mapPixel_ret
 
 notOp0C
         mov     c,#%11110001             ' Unknown ...
-        jmp     #ErrorInC                ' ... opcode 
+        jmp     #ShowErrorInC            ' ... opcode 
         
 doEvent
         mov     p,events                 ' Pointer to events
@@ -454,94 +565,32 @@ mdiv2                   cmpsub  asm_x,t1        wc
                         negc    asm_y,asm_y              
 sdiv32_ret              ret
 
-' -------------------------------------------------------------------------------------------------
-
-ReadWord
-' In case the pointer isn't word-aligned
-        rdbyte  tmp,programCounter            ' Read ...
-        add     programCounter,#1             ' ... MSB
-        shl     tmp,#8                        ' Into position
-        rdbyte  tmp2,programCounter           ' Read ...
-        add     programCounter,#1             ' ... LSB
-        or      tmp,tmp2                      ' Result is in tmp
-ReadWord_ret
-        ret                                   
-        
-' -------------------------------------------------------------------------------------------------
-
-GetParam
-        call    #GetOpAddr               ' Get the address of the op
-  if_z  jmp     #GetParamC               ' This is constant ... use this value        
-        rdword  t1,tmp                   ' Read the value. These are always word-aligned.
-GetParamC
-        ' TODO
-        ' Sign extend 14 bit
-GetParam_ret
-        ret
-
-' -------------------------------------------------------------------------------------------------
-        
-GetOpAddr        
-        call    #ReadWord                ' Get the parameter
-
-        and     tmp, C_7FFF nr, wz       ' Upper bit set?
-  if_z  jmp     #GetParam_ret            ' No ... exit with Z set
-
-' Upper bit is set. This is a variable reference:
-'   0 = global variable
-'   1 = stack variable
-'   2 = outgoing return (return to caller)
-'   3 = incoming return (returned by function)
-
-        and     tmp, C_7FFF wz
- if_z   jmp     #OpGlobal
-        cmp     tmp, #1 wz
- if_z   jmp     #OpStackVar
-        cmp     tmp, #2 wz
- if_z   jmp     #OpOutRet
-
-OpInRet
-        ' TODO                      
-        jmp     #GetOpAddrNZ
-
-OpGlobal          
-        ' TODO
-        jmp     #GetOpAddrNZ
-
-OpStackVar   
-        ' TODO
-        jmp     #GetOpAddrNZ
-
-OpOutRet
-        ' TODO
-
-GetOpAddrNZ
-        or      tmp,#1 nr
-GetOpAddr_ret
-        ret  
              
-' -------------------------------------------------------------------------------------------------   
-
-ErrorInC
-        mov      p, par_palette
-        wrlong   ERRCOLOR0,p
-        add      p,#4
-        nop
-        wrlong   ERRCOLOR1,p
-        mov      val,#16
-        shl      c,#16
-        mov      p, par_buffer
-errloop shl      c,#1 wc
-  if_c  wrbyte   ONE,p
-  if_nc wrbyte   ZERO,p
-        add      p,#1
-        djnz     val,#errloop
-        call     #UpdateDisplay
+' -------------------------------------------------------------------------------------------------
+ShowErrorInC
+' Show 8 bit error value in C and INFINITE LOOP
+' Values are shown most significant bit to least starting with 1st pixel on the strand
+'
+' @param c the 8-bit error code
+'
+        mov      p, par_palette          ' Set ...
+        wrlong   ERRCOLOR0,p             ' ... colors ...
+        add      p,#4                    ' ... for ...
+        nop                              ' ... error ...
+        wrlong   ERRCOLOR1,p             ' ... report
+        mov      val,#8                  ' 8 pixels to write
+        shl      c,#24                   ' Move to the far left
+        mov      p, par_buffer           ' Start of pixel strand
+errloop shl      c,#1 wc                 ' Test the next bit
+  if_c  wrbyte   ONE,p                   ' If it is a 1 ... light the pixel
+  if_nc wrbyte   ZERO,p                  ' If it is a 0 ... turn the pixel off
+        add      p,#1                    ' Next in strand
+        djnz     val,#errloop            ' Do all pixels
+        call     #UpdateDisplay          ' Draw the strand
         '
-errinf  jmp      #errinf  
+errinf  jmp      #errinf                 ' INFINITE LOOP
 
 ' -------------------------------------------------------------------------------------------------   
-
 UpdateDisplay
         mov     p,par_buffer             ' Start of pixel buffer
         mov     pixCnt, par_pixCount

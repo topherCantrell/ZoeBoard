@@ -19,21 +19,24 @@ We use our HTML page to visually program/simulate pixels on the robot. The page 
 The ZoeProcessor reads bytes from a binary data area. Each binary program has a header structured as follows:
 
 ```
-DD LL WW NN       ; 4 bytes of configuration info: out=DD, length=LL, hasWhite=WW, NN=numberOfVariables
-.....             ; 32 byte buffer for event injection (1st byte is the trigger ... set it last)
+DD LL WW NN       ; 4    bytes: Configuration info: out=DD, length=LL, hasWhite=WW, NN=numberOfVariables
+.....             ; 32   bytes: Buffer for event injection (1st byte is the trigger ... set it last)
 .....             ; 64*4 bytes: The pixel color palette
 .....             ; 16*2 bytes: 16 pointers to pixel patterns
-.....             ; 128 bytes: Call stack
-.....             ; LL bytes: Pixel drawing buffer. One byte per pixel (LL pixels)
-.....             ; NN*2: Two bytes of storage for each variable
+.....             ; 64*2 bytes: Call stack
+.....             ; NN*2 bytes: Two bytes of storage for each variable
+.....             ; 2    bytes: Initial program counter
+.....             ; LL   bytes: Pixel drawing buffer. One byte per pixel (LL pixels)
+
 ```
 
 The header is followed by the event pointer table. Each entry is a null terminated string and a two-byte pointer to the code function. The table is terminated with 0.
 
 For instance:
 ```
-"INIT" 00 PP PP
-"START" 00 PP PP
+PP PP
+"FireCube" 00 PP PP
+"DoStuff" 00 PP PP
 00
 ```
 
@@ -66,16 +69,17 @@ tttt:
 
 ```
 01 OP OP            ; Variable assignment: [OP] = OP
-02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%) 
-03 OP               ; PAUSE time=OP
-04 OP OP OP OP OP   ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
-05 OP               ; SOLID color=OP
-06 OP OP            ; SET pixel=OP, color=OP
-07 OP NN WW HH ..   ; PATTERN number=OP, length=NN, width height data ..
-08 OP OP OP OP      ; DRAQPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
-09 PP PP            ; GOTO location=PPPP (16 bit signed offset)
-0A PP PP NN LL ..   ; GOSUB location=PPPP (16 bit signed offset), NN=number of values passed, 
+02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%)
+03 PP PP            ; GOTO location=PPPP (16 bit signed offset)
+04 PP PP NN LL ..   ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, 
                     ; LL=number of local variables, ..= value words ..
-0B                  ; RETURN
-OC OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
+05                  ; RETURN
+O6 OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
+
+07 OP               ; PAUSE time=OP
+08 OP OP OP OP OP   ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
+09 OP NN WW HH ..   ; DEFPATTERN number=OP, length=NN, width height data ..
+0A OP OP            ; SETPIXEL pixel=OP, color=OP
+0B OP               ; SETSOLID color=OP
+0C OP OP OP OP      ; DRAWPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
 ```
