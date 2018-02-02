@@ -34,7 +34,6 @@ The header is followed by the event pointer table. Each entry is a null terminat
 
 For instance:
 ```
-PP PP
 "FireCube" 00 PP PP
 "DoStuff" 00 PP PP
 00

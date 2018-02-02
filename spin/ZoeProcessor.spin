@@ -139,21 +139,24 @@ GetOpAddr
 ' @return Z set if pointer is the constant value
 ' @mangles tmp2, t1
 '
-        call    #ReadWord                ' Get the parameter
+        call    #ReadWord                ' Get the operand
         and     tmp, C_7FFF nr, wz       ' Upper bit set?
   if_z  jmp     #GetParam_ret            ' No ... exit with Z set
-
-' Upper bit is set. This is a variable reference:
-'   0 = global variable
-'   1 = stack variable
-'   2 = outgoing return (return to caller)
-'   3 = incoming return (returned by function)
-
-        and     tmp, C_7FFF wz
+' Upper bit is set. This is a variable reference 
+        mov     t1, tmp                  ' Type ...         
+        shr     t1, #8                   ' ... to ...
+        and     t1, #127                 ' ... t1
+        and     tmp, #$FF                ' The index is 00 .. FF
+' t1 = type:
+'    0 = global variable
+'    1 = stack variable
+'    2 = outgoing return (return to caller)
+'    3 = incoming return (returned by function)
+        cmp     t1,#0 wz
  if_z   jmp     #OpGlobal
-        cmp     tmp, #1 wz
+        cmp     t1, #1 wz
  if_z   jmp     #OpStackVar
-        cmp     tmp, #2 wz
+        cmp     t1, #2 wz
  if_z   jmp     #OpOutRet      
 
 OpInRet
@@ -184,7 +187,7 @@ GetOpAddr_ret
 
 comINVALID
         mov     c,#%11110001             ' Unknown ...        
-        jmp     #ShowErrorInC            ' ... opcode
+        jmp     #HaltShowErrorInC        ' ... opcode
         
 comTable
         jmp     #comINVALID              ' 0
@@ -475,7 +478,7 @@ mapPixel_ret
 
 notOp0C
         mov     c,#%11110001             ' Unknown ...
-        jmp     #ShowErrorInC            ' ... opcode 
+        jmp     #HaltShowErrorInC        ' ... opcode 
         
 doEvent
         mov     p,events                 ' Pointer to events
@@ -576,7 +579,7 @@ sdiv32_ret              ret
 
              
 ' -------------------------------------------------------------------------------------------------
-ShowErrorInC
+HaltShowErrorInC
 ' Show 8 bit error value in C and INFINITE LOOP
 ' Values are shown most significant bit to least starting with 1st pixel on the strand
 '
