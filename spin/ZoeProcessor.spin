@@ -116,16 +116,19 @@ GetParam
 '
 ' @param programCounter where to read from (incremented here)
 ' @return tmp 32-bit signed value
-' @mangles tmp2, t1
+' @mangles tmp2
 '
         call    #GetOpAddr               ' Get the address of the op
-  if_z  jmp     #GetParamC               ' This is constant ... use this value        
-        rdword  t1,tmp                   ' Read the value. These are always word-aligned.
+  if_z  jmp     #GetParamC               ' This is a constant ... use this value        
+        rdword  tmp,tmp                  ' Read the value. These are always word-aligned.
+        and     tmp,C_8000 nr, wz        ' Sign bit set?
+  if_nz or      tmp,C_FFFF_0000          ' Yes ... extend it to 32 bits       
+        jmp     #GetParam_ret            ' Return the value from the variable
 GetParamC
-        ' TODO
-        ' Sign extend 14 bit
+        and     tmp,C_4000 nr, wz         ' Sign bit set (different bit for constants)
+  if_nz or      tmp,C_FFFF_8000           ' Extend the constant sign bit
 GetParam_ret
-        ret
+        ret  
 
 ' -------------------------------------------------------------------------------------------------        
 GetOpAddr
@@ -137,7 +140,6 @@ GetOpAddr
 ' @mangles tmp2, t1
 '
         call    #ReadWord                ' Get the parameter
-
         and     tmp, C_7FFF nr, wz       ' Upper bit set?
   if_z  jmp     #GetParam_ret            ' No ... exit with Z set
 
@@ -152,25 +154,29 @@ GetOpAddr
         cmp     tmp, #1 wz
  if_z   jmp     #OpStackVar
         cmp     tmp, #2 wz
- if_z   jmp     #OpOutRet
+ if_z   jmp     #OpOutRet      
 
 OpInRet
-        ' TODO word at the current stack pointer +2 (1st slot in last frame)                      
-        jmp     #GetOpAddrNZ
-
-OpGlobal          
-        ' TODO  i variable in the global variables
-        jmp     #GetOpAddrNZ
-
-OpStackVar   
-        ' TODO (i+1) variable in current frame
-        jmp     #GetOpAddrNZ
+        mov     tmp,stackPointer         ' Return from ...
+        add     tmp,#2                   ' ... the last function called
+        jmp     #GetOpAddrNZ             ' Return with Z not set
 
 OpOutRet
-        ' TODO first word in the current frame
+        mov     tmp,framePointer         ' The value we are returning
+        jmp     #GetOpAddrNZ             ' Return with Z not set
+
+OpGlobal          
+        shl     tmp,#1                   ' Two bytes per global
+        add     tmp,variables            ' Offset into global variables
+        jmp     #GetOpAddrNZ             ' Return with Z not set
+
+OpStackVar   
+        add     tmp, #1                  ' Skip the return value holder
+        shl     tmp, #1                  ' Two bytes per local
+        add     tmp,framePointer         ' Offset into local variables
 
 GetOpAddrNZ
-        or      tmp,#1 nr
+        or      tmp,#1 nr, wz            ' Clear the Z flag
 GetOpAddr_ret
         ret  
 
@@ -197,6 +203,7 @@ comTable
         jmp     #comSETSOLID             ' 11
         jmp     #comDRAWPATTERN          ' 12
 
+' -------------------------------------------------------------------------------------------------
 comASSIGN
 ' OPCODE 01 paramS paramD : SET(VARIABLE=paramD, VALUE=paramS)
         call    #GetParam                     ' Get the ...
@@ -205,7 +212,16 @@ store
         call    #GetOpAddr                    ' Destination
         wrword  t2,tmp                        ' Write the source value to the destination
         jmp     #Command                      ' Keep running commands until PAUSE
-
+        
+' -------------------------------------------------------------------------------------------------
+comGOTO
+' OPCODE 03 offset : GOTO offset   
+        call    #ReadWord                     ' Get the relative offset
+doJump  add     programCounter,tmp            ' Add in the jump
+        and     programCounter,C_FFFF         ' Mask to a word
+        jmp     #command                      ' Run till pause
+        
+' -------------------------------------------------------------------------------------------------
 comPAUSE
 ' OPCODE 07 paramN : PAUSE(TIME=paramN)
         call    #GetParam                     ' Get the ...
@@ -213,23 +229,9 @@ comPAUSE
         call    #UpdateDisplay                ' Draw the display
         jmp     #mainLoop                     ' Back to wait for pause
 
-comMATH
-comGOTO
-comCALL
-comRETURN
-comIF   
-comDEFCOLOR
-comDEFPATTERN
+' -------------------------------------------------------------------------------------------------        
 comSETPIXEL
-comSETSOLID
-comDRAWPATTERN
-
-        jmp    #mainLoop
-        
-        
-                
-notOp01 djnz    c,#notOp02  
-' OPCODE 02 param param  SET(PIXEL=param,COLOR=param)
+' OPCODE 0A param param  SET(PIXEL=param,COLOR=param)
         call    #GetParam                     ' PIXEL=param        
         mov     p,tmp                         ' Hold pixel number
         add     p,par_buffer                  ' Pointer to pixel buffer
@@ -237,12 +239,18 @@ notOp01 djnz    c,#notOp02
         wrbyte  tmp,p                         ' Set the pixel value
         jmp     #command                      ' Run till pause
 
-notOp02 djnz    c,#notOp04
-' OPCODE 03 offset  GOTO(offset)
-doGoto  call    #ReadWord                     ' Get the relative offset
-doJump  add     programCounter,tmp            ' Add in the jump
-        and     programCounter,C_FFFF         ' Mask to a word
-        jmp     #command                      ' Run till pause
+comMATH
+comCALL
+comRETURN
+comIF
+'
+comDEFCOLOR
+comDEFPATTERN
+comSETSOLID
+comDRAWPATTERN
+        jmp    #command            
+
+
 
 notOp04 djnz    c,#notOp05
 ' OPCODE 05 nn oo param param MATH(DST=nn, OP=oo, LEFT=param, RIGHT=param)
@@ -340,20 +348,21 @@ logicOp jmp     #command                      ' PASSES ... next instruction and 
         jmp     #doJump                       ' End of IF block and run till pause
 
 ' -return-
-' RetVal <--Frame pointer
+' RetVal        <--Frame pointer
 ' Param1
 ' Param2
 ' Param3
-'        <--Stack pointer
+' (last return) <--Stack pointer
+' (last RetVal)
 
 ' Calling a subroutine:
 '  - Push the return address program counter
 '  - Set frame pointer to current stack ptr
-'  - Push 3 zeros (0 return argument)
+'  - Push 2 zeros (0 return value)
 '  - Push the call argument bytes on the stack
 '  - Change the program counter
 ' Returning from a subroutine:
-'  - Set stack pointer to frame pointer - 3
+'  - Set stack pointer to frame pointer - 2
 '  - Pop the program counter
 
 notOp06 djnz    c,#notOp07
@@ -362,7 +371,7 @@ notOp06 djnz    c,#notOp07
         add     p, #2                          ' ... next instruction
         wrword  p,stackPointer                 ' Write the return (these are long aligned)
         add     stackPointer,#2                ' Slot for next time
-        jmp     #doGoto                        ' Regular GOTO and run till pause        
+        jmp     #comGOTO                       ' Regular GOTO and run till pause        
 
 notOp07 djnz    c,#notOp08
 ' OPCODE 08          RTS
@@ -686,9 +695,11 @@ pixCnt           long 0          ' Temporary for pixels in the strip
 tmp              long 0          ' Temporary
 tmp2             long 0          ' Temporary
 '
-C_SIGN           long $00_00_80_00
-C_SIGNEXT        long $FF_FF_00_00
 C_RES            long $4B0         ' Wait count for latching the LEDs
+C_4000           long $4000        ' 15-bit sign bit
+C_8000           long $8000        ' 16-bit sign bit
+C_FFFF_0000      long $FFFF_0000   ' Sign extend
+C_FFFF_8000      long $FFFF_8000   ' Sign extend
 C_FFFF           long $FFFF        ' Used to mask 2-byte signed numbers
 C_7FFF           long $7FFF        ' Used to mask variable number
 C_003C0000       long $003C0000
