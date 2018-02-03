@@ -11,6 +11,16 @@ ZoeCOG
 
 ' Setup our pointers into the header
 ' If space gets tight we can do this in SPIN and have the variables populated when read into the cog
+
+' pn            - Pin Number
+' par_pixCount  - Number of pixels
+' numBitsToSend - 24 or 32 (RGBW)
+' numVars       - Number of local variables (maybe not needed)
+' eventInput    - event input buffer
+' par_palette   - color palette
+' patters       - pointers to patterns
+' stackPointer  - pointer to stack
+' pixelCount    - pixels on the strand
                
         mov     p,par                    ' Header in program data
 
@@ -31,7 +41,7 @@ ZoeCOG
         rdbyte  numVars,p                ' Number of variables
         add     p,#1                     ' Next byte
 
-        ' 32 bytes for events
+        ' 32 bytes for event
         
         mov     eventInput,p             ' This is the event-input buffer        
         add     p, #32                   ' Point to the ...
@@ -47,8 +57,7 @@ ZoeCOG
         add     p, #16*2                 ' Skip to ...
 
         ' 64*2 bytes for the call stack
-        
-        mov     stackPointer,p           ' ... callstack
+
         mov     resetStackPtr,p          ' For aborting the stack
         add     p, #64*2                 ' Skip to ...
 
@@ -59,9 +68,9 @@ ZoeCOG
         shl     c,#1                     ' ... per variable
         add     p,c                      ' Point to ...
 
-        ' 2 bytes for the initial program counter -- this is "function init()"
+        ' 2 bytes for the initial program counter OFFSET -- this is "function init()"
         
-        rdword  programCounter,p         ' Initial program counter
+        rdword  programCounter,p         ' Initial program counter. This is an offset from end of header.
         add     p,#2                     ' Point to ...
 
         ' LL bytes for the pixel drawing buffer
@@ -72,6 +81,9 @@ ZoeCOG
         
         add     p,par_pixCount           ' Point to ...
         mov     events,p                 ' ... event table
+
+        mov     stackPointer,resetStackPtr
+        add     programCounter,p         ' Convert offset to pointer
 
         jmp     #command                 ' Start the init function
         
@@ -85,10 +97,10 @@ mainLoop
         waitcnt c,c                      ' Wait for 1 MSec  
         djnz    pauseCounter, #mainLoop  ' Wait all 1MSEC tics
 
-command
-        rdbyte  c,programCounter         ' Next ... 
+command 
+        rdbyte  c,programCounter         ' Next ...         
         add     programCounter,#1        ' ... opcode
-        cmp     c,#12 wz,wc              ' Valid opcode?
+        cmp     c,#13 wz,wc              ' Valid opcode?
   if_a  mov     c,#0                     ' No ... show the error
         add     c,#comTable              ' Offset into COM table
         jmp     c                        ' Execute the command
@@ -139,9 +151,9 @@ GetOpAddr
 ' @return Z set if pointer is the constant value
 ' @mangles tmp2, t1
 '
-        call    #ReadWord                ' Get the operand
-        and     tmp, C_7FFF nr, wz       ' Upper bit set?
-  if_z  jmp     #GetParam_ret            ' No ... exit with Z set
+        call    #ReadWord                ' Get the operand          
+        andn    tmp, C_7FFF nr, wz       ' Upper bit set?   
+  if_z  jmp     #GetParam_ret            ' No ... exit with Z set          
 ' Upper bit is set. This is a variable reference 
         mov     t1, tmp                  ' Type ...         
         shr     t1, #8                   ' ... to ...
@@ -186,7 +198,7 @@ GetOpAddr_ret
 ' -------------------------------------------------------------------------------------------------             
 
 comINVALID
-        mov     c,#%11110001             ' Unknown ...        
+        mov     c,#%11110101             ' Unknown ...        
         jmp     #HaltShowErrorInC        ' ... opcode
         
 comTable
@@ -195,16 +207,17 @@ comTable
         jmp     #comASSIGN               ' 1
         jmp     #comMATH                 ' 2
         jmp     #comGOTO                 ' 3
-        jmp     #comCALL                 ' 4
-        jmp     #comRETURN               ' 5
-        jmp     #comIF                   ' 6
+        jmp     #comRESLOCAL             ' 4
+        jmp     #comCALL                 ' 5
+        jmp     #comRETURN               ' 6
+        jmp     #comIF                   ' 7
         '
-        jmp     #comPAUSE                ' 7
-        jmp     #comDEFCOLOR             ' 8
-        jmp     #comDEFPATTERN           ' 9
-        jmp     #comSETPIXEL             ' 10
-        jmp     #comSETSOLID             ' 11
-        jmp     #comDRAWPATTERN          ' 12
+        jmp     #comPAUSE                ' 8
+        jmp     #comDEFCOLOR             ' 9
+        jmp     #comDEFPATTERN           ' 10
+        jmp     #comSETPIXEL             ' 11
+        jmp     #comSETSOLID             ' 12
+        jmp     #comDRAWPATTERN          ' 13
 
 ' -------------------------------------------------------------------------------------------------
 comASSIGN
@@ -226,23 +239,25 @@ doJump  add     programCounter,tmp            ' Add in the jump
         
 ' -------------------------------------------------------------------------------------------------
 comPAUSE
-' OPCODE 07 paramN : PAUSE(TIME=paramN)
+' OPCODE 08 paramN : PAUSE(TIME=paramN)        
         call    #GetParam                     ' Get the ...
         mov     pauseCounter,tmp              ' ... pause counter value
-        call    #UpdateDisplay                ' Draw the display
+        call    #UpdateDisplay                ' Draw the display  
         jmp     #mainLoop                     ' Back to wait for pause
 
 ' -------------------------------------------------------------------------------------------------        
 comSETPIXEL
-' OPCODE 0A param param  SET(PIXEL=param,COLOR=param)
+' OPCODE 0B param param  SET(PIXEL=param,COLOR=param)       
+
         call    #GetParam                     ' PIXEL=param        
         mov     p,tmp                         ' Hold pixel number
         add     p,par_buffer                  ' Pointer to pixel buffer
-        call    #GetParam                     ' COLOR=param
+        call    #GetParam                     ' COLOR=param        
         wrbyte  tmp,p                         ' Set the pixel value
         jmp     #command                      ' Run till pause
 
 comMATH
+comRESLOCAL
 comCALL
 comRETURN
 comIF

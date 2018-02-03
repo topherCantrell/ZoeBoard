@@ -70,15 +70,16 @@ tttt:
 01 OP OP            ; Variable assignment: [OP] = OP
 02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%)
 03 PP PP            ; GOTO location=PPPP (16 bit signed offset)
-04 PP PP NN LL ..   ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, 
+04 PP               ; RESLOCAL numberOfLocalVars=PP (unsigned byte)
+05 PP PP NN LL ..   ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, 
                     ; LL=number of local variables, ..= value words ..
-05                  ; RETURN
-O6 OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
+06                  ; RETURN
+O7 OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 
-07 OP               ; PAUSE time=OP
-08 OP OP OP OP OP   ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
-09 OP NN WW HH ..   ; DEFPATTERN number=OP, length=NN, width height data ..
-0A OP OP            ; SETPIXEL pixel=OP, color=OP
-0B OP               ; SETSOLID color=OP
-0C OP OP OP OP      ; DRAWPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
+08 OP               ; PAUSE time=OP
+09 OP OP OP OP OP   ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
+0A OP NN WW HH ..   ; DEFPATTERN number=OP, length=NN, width height data ..
+0B OP OP            ; SETPIXEL pixel=OP, color=OP
+0C OP               ; SETSOLID color=OP
+0D OP OP OP OP      ; DRAWPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
 ```
