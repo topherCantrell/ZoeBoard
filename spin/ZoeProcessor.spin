@@ -9,82 +9,6 @@ DAT
 
 ZoeCOG
 
-' Setup our pointers into the header
-' If space gets tight we can do this in SPIN and have the variables populated when read into the cog
-
-' pn            - Pin Number
-' par_pixCount  - Number of pixels
-' numBitsToSend - 24 or 32 (RGBW)
-' numVars       - Number of local variables (maybe not needed)
-' eventInput    - event input buffer
-' par_palette   - color palette
-' patters       - pointers to patterns
-' stackPointer  - pointer to stack
-' pixelCount    - pixels on the strand
-               
-        mov     p,par                    ' Header in program data
-
-        ' 4 bytes of config
-        
-        rdbyte  c,p                      ' Pin number
-        add     p,#1                     ' Next byte
-        mov     pn,#1                    ' Pin number                 
-        
-        rdbyte  par_pixCount,p           ' Pixels on the strand
-        add     p,#1                     ' Next byte
-        shl     pn,c                     ' This is our permanent pin mask  
-
-        rdbyte  numBitsToSend,p          ' 24 (RGB) or 32 (RGBW)
-        add     p,#1                     ' Next byte
-        or      dira,pn                  ' Make sure we can write to our pin (here to kill time between rdbytes)
-
-        rdbyte  numVars,p                ' Number of variables
-        add     p,#1                     ' Next byte
-
-        ' 32 bytes for event
-        
-        mov     eventInput,p             ' This is the event-input buffer        
-        add     p, #32                   ' Point to the ...
-
-        ' 64*4 bytes for the color palette
-        
-        mov     par_palette,p            ' ... color palette
-        add     p, #64*4                 ' Skip to ...
-
-        ' 16*2 bytes for the pixel pattern pointers
-        
-        mov     patterns,p               ' ... patterns  
-        add     p, #16*2                 ' Skip to ...
-
-        ' 64*2 bytes for the call stack
-
-        mov     resetStackPtr,p          ' For aborting the stack
-        add     p, #64*2                 ' Skip to ...
-
-        ' NN*2 bytes for the global variables
-        
-        mov     variables,p              ' ... variables        
-        mov     c,numVars                ' Two bytes ...
-        shl     c,#1                     ' ... per variable
-        add     p,c                      ' Point to ...
-
-        ' 2 bytes for the initial program counter OFFSET -- this is "function init()"
-        
-        rdword  programCounter,p         ' Initial program counter. This is an offset from end of header.
-        add     p,#2                     ' Point to ...
-
-        ' LL bytes for the pixel drawing buffer
-        
-        mov     par_buffer,p             ' ... pixel buffer
-
-        ' Event table
-        
-        add     p,par_pixCount           ' Point to ...
-        mov     events,p                 ' ... event table
-
-        mov     stackPointer,resetStackPtr
-        add     programCounter,p         ' Convert offset to pointer
-
         jmp     #command                 ' Start the init function
         
 ' -------------------------------------------------------------------------------------------------
@@ -365,15 +289,20 @@ logicOp jmp     #command                      ' PASSES ... next instruction and 
         mov     tmp,p                         ' Offset if failed
         jmp     #doJump                       ' End of IF block and run till pause
 
+' -framepointer-
 ' -return-
-' RetVal        <--Frame pointer
-' Param1
+' RetVal              <--Frame pointer
+' Param1                 (This is where SP and FP point for init and events)
 ' Param2
 ' Param3
-' (last return) <--Stack pointer
+' Local1
+' Local2
+' (last framepointer) <--Stack pointer 
+' (last return) 
 ' (last RetVal)
 
 ' Calling a subroutine:
+'  - Push the frame pointer
 '  - Push the return address program counter
 '  - Set frame pointer to current stack ptr
 '  - Push 2 zeros (0 return value)
@@ -382,6 +311,7 @@ logicOp jmp     #command                      ' PASSES ... next instruction and 
 ' Returning from a subroutine:
 '  - Set stack pointer to frame pointer - 2
 '  - Pop the program counter
+'  - Pop the frame pointer
 
 notOp06 djnz    c,#notOp07
 ' OPCODE 07 mm ll    JSR
@@ -679,23 +609,24 @@ loop5   djnz    c,#loop5                 '
 sendDone_ret                             '
         ret                              ' Done  
 
-' -------------------------------------------------------------------------------------------------     
-
-pauseCounter     long 0          ' number of tics left in pause
-eventInput       long 0          ' Pointer to event input
+' -------------------------------------------------------------------------------------------------
+' These 10 variables must be filled out before the COG is started.
+' 
+pn               long 0          ' Pin number bit mask
+par_pixCount     long 0          ' Number of pixels
+numBitsToSend    long 0          ' Either 32 bits (RGBW) or 24 bits (RGB)
+eventInput       long 0          ' Pointer to event input  
+par_palette      long 0          ' Color palette (some commands)
 patterns         long 0          ' Pointer to patterns
-variables        long 0          ' Pointer to variables
-events           long 0          ' Pointer to events
+resetStackPtr    long 0          ' Start of stack space (to reset the stack ptr)
+variables        long 0          ' Pointer to variables 
+par_buffer       long 0          ' Pointer to the pixel data buffer
+events           long 0          ' Pointer to events   
+'
+pauseCounter     long 0          ' number of tics left in pause   
 programCounter   long 0          ' Current PC
 stackPointer     long 0          ' Current stack pointer
-framePointer     long 0          ' Pointer to local variables on the stack
-resetStackPtr    long 0          ' Start of stack space (to reset the stack ptr)
-par_palette      long 0          ' Color palette (some commands) 
-par_buffer       long 0          ' Pointer to the pixel data buffer
-par_pixCount     long 0          ' Number of pixels
-numVars          long 0          ' Number of variables on the strand
-pn               long 0          ' Pin number bit mask
-numBitsToSend    long 0          ' Either 32 bits (RGBW) or 24 bits (RGB)
+framePointer     long 0          ' Pointer to local variables on the stack 
 '
 asm_x            long 0          ' Temporary 
 asm_y            long 0          ' Temporary 
@@ -713,6 +644,7 @@ pixCnt           long 0          ' Temporary for pixels in the strip
 tmp              long 0          ' Temporary
 tmp2             long 0          ' Temporary
 '
+ONE_MSEC         long 80_000       ' 80_000_000 clocks in a second / 1000 
 C_RES            long $4B0         ' Wait count for latching the LEDs
 C_4000           long $4000        ' 15-bit sign bit
 C_8000           long $8000        ' 16-bit sign bit
@@ -720,12 +652,12 @@ C_FFFF_0000      long $FFFF_0000   ' Sign extend
 C_FFFF_8000      long $FFFF_8000   ' Sign extend
 C_FFFF           long $FFFF        ' Used to mask 2-byte signed numbers
 C_7FFF           long $7FFF        ' Used to mask variable number
-C_003C0000       long $003C0000
-ONE              long 1            ' Used to WRBYTE
-ZERO             long 0            ' Used to WRBYTE
-ERRCOLOR0        long $00_00_00_08 ' Color for 0 bits in error
-ERRCOLOR1        long $00_08_08_08 ' Color for 1 bits in error
-ONE_MSEC         long 80_000       ' 80_000_000 clocks in a second / 1000
+C_003C0000       long $003C0000    ' Mask for SPIN conditional field
+'
+ONE              long 1            ' Used ... 
+ZERO             long 0            ' ... in ...
+ERRCOLOR0        long $00_00_00_08 ' ... error ...
+ERRCOLOR1        long $00_08_08_08 ' ... reporting
 
       FIT
       
