@@ -71,8 +71,7 @@ tttt:
 02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%)
 03 PP PP            ; GOTO location=PPPP (16 bit signed offset)
 04 PP               ; RESLOCAL numberOfLocalVars=PP (unsigned byte)
-05 PP PP NN LL ..   ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, 
-                    ; LL=number of local variables, ..= value words ..
+05 PP PP NN ..      ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, ..= value words
 06                  ; RETURN
 O7 OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
 
