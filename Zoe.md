@@ -63,22 +63,24 @@ Where tttt is the variable type (see below) and iiiiiiii is the variable index 0
 tttt:
   - 0000 i is a global variable reference
   - 0001 i is a stack variable reference
-  - 0010 reference the outgoing return value (returned to the calling function). i is ignored.
-  - 0011 reference the incoming return value (returned by the last function called). i is ignored.
+  - 0010 reference the incoming return value (returned by the last function called). i is ignored.
 
 ```
-01 OP OP            ; Variable assignment: [OP] = OP
-02 OP OP MM OP      ; Math expression: [OP] = OP operator OP (mm: 0=+, 1=-, 2=*, 3=/, 4=%)
-03 PP PP            ; GOTO location=PPPP (16 bit signed offset)
-04 PP               ; RESLOCAL numberOfLocalVars=PP (unsigned byte)
-05 PP PP NN ..      ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, ..= value words
-06                  ; RETURN
-O7 OP NN OP         ; IF(OP logic OP) logic: 0=<=, 1=>=, 2===, 3=!=, 4=<, 5=>
+01 OP OP                ; Variable assignment: [OP] = OP
+02 OPL OPR MM OPD       ; Math expression: OPD = OPL operator OPR -- operator MM: 
+                        ;   00=MUL, 01=DIV, 02=MOD, 20=ADD, 21=SUB, 19=NEG
+                        ;   18=AND, 1A=OR,  1B=XOR, 0B=SHL, 0A=SHR
+03 PP PP                ; GOTO location=PPPP (16 bit signed offset)
+04 PP                   ; RESLOCAL numberOfLocalVars=PP (unsigned byte)
+05 PP PP NN ..          ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, ..= value words
+06                      ; RETURN
+O7 PP PP OP NN OP       ; IF(OP logic OP) else GOTO PPPP -- logic NN: 
+                        ; 0A=equals, 05=notEquals, 01=greater, 0C=lessThan, 03=greaterEquals, 0E=lessThanEquals
 
-08 OP               ; PAUSE time=OP
-09 OP OP OP OP OP   ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
-0A OP NN WW HH ..   ; DEFPATTERN number=OP, length=NN, width height data ..
-0B OP OP            ; SETPIXEL pixel=OP, color=OP
-0C OP               ; SETSOLID color=OP
-0D OP OP OP OP      ; DRAWPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
+08 OP                   ; PAUSE time=OP
+09 OPS OPW OPG OPR OPB  ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
+0A OP NN WW HH ..       ; DEFPATTERN number=OP, length=NN, width height data ..
+0B OPP OPC              ; SETPIXEL pixel=OP, color=OP
+0C OP                   ; SETSOLID color=OP
+0D OPX OPY OPP OPC      ; DRAWPATTERN x=OP, y=OP, pattern=OP, colorOffset=OP
 ```

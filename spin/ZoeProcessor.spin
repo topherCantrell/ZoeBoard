@@ -1,14 +1,25 @@
-pub init(prog)
+pub init(ioPin,numPixels,bitsToSend,ofs_eventInput,ofs_palette,ofs_patterns,ofs_stack,ofs_variables,ofs_pixBuf,ofs_eventTab,ofs_pc)
+'' Start the NeoPixel driver cog
 
-'' Start the NeoPixel driver cog 
+   pn             := ioPin
+   par_pixCount   := numPixels
+   numBitsToSend  := bitsToSend
+   eventInput     := ofs_eventInput
+   par_palette    := ofs_palette
+   patterns       := ofs_patterns
+   resetStackPtr  := ofs_stack
+   variables      := ofs_variables
+   par_buffer     := ofs_pixBuf
+   events         := ofs_eventTab
+   programCounter := ofs_pc    
          
-   return cognew(@ZoeCOG,prog)
+   return cognew(@ZoeCOG,0)
    
 DAT          
         org 0
 
 ZoeCOG
-
+        or      dira, pn                 ' Set output pin
         jmp     #command                 ' Start the init function
         
 ' -------------------------------------------------------------------------------------------------
@@ -52,7 +63,7 @@ GetParam
 '
 ' @param programCounter where to read from (incremented here)
 ' @return tmp 32-bit signed value
-' @mangles tmp2
+' @mangles tmp2, t1
 '
         call    #GetOpAddr               ' Get the address of the op
   if_z  jmp     #GetParamC               ' This is a constant ... use this value        
@@ -76,8 +87,8 @@ GetOpAddr
 ' @mangles tmp2, t1
 '
         call    #ReadWord                ' Get the operand          
-        andn    tmp, C_7FFF nr, wz       ' Upper bit set?   
-  if_z  jmp     #GetParam_ret            ' No ... exit with Z set          
+        and     tmp, C_8000 nr, wz       ' Upper bit set?   
+  if_z  jmp     #GetOpAddr_ret           ' No ... exit with Z set          
 ' Upper bit is set. This is a variable reference 
         mov     t1, tmp                  ' Type ...         
         shr     t1, #8                   ' ... to ...
@@ -86,22 +97,15 @@ GetOpAddr
 ' t1 = type:
 '    0 = global variable
 '    1 = stack variable
-'    2 = outgoing return (return to caller)
-'    3 = incoming return (returned by function)
-        cmp     t1,#0 wz
+'    2 = incoming return (returned by function)
+        cmp     t1, #0 wz
  if_z   jmp     #OpGlobal
         cmp     t1, #1 wz
  if_z   jmp     #OpStackVar
-        cmp     t1, #2 wz
- if_z   jmp     #OpOutRet      
-
+        
 OpInRet
         mov     tmp,stackPointer         ' Return from ...
-        add     tmp,#2                   ' ... the last function called
-        jmp     #GetOpAddrNZ             ' Return with Z not set
-
-OpOutRet
-        mov     tmp,framePointer         ' The value we are returning
+        add     tmp,#4                   ' ... the last function called
         jmp     #GetOpAddrNZ             ' Return with Z not set
 
 OpGlobal          
@@ -109,8 +113,7 @@ OpGlobal
         add     tmp,variables            ' Offset into global variables
         jmp     #GetOpAddrNZ             ' Return with Z not set
 
-OpStackVar   
-        add     tmp, #1                  ' Skip the return value holder
+OpStackVar
         shl     tmp, #1                  ' Two bytes per local
         add     tmp,framePointer         ' Offset into local variables
 
@@ -135,7 +138,6 @@ comTable
         jmp     #comCALL                 ' 5
         jmp     #comRETURN               ' 6
         jmp     #comIF                   ' 7
-        '
         jmp     #comPAUSE                ' 8
         jmp     #comDEFCOLOR             ' 9
         jmp     #comDEFPATTERN           ' 10
@@ -144,287 +146,7 @@ comTable
         jmp     #comDRAWPATTERN          ' 13
 
 ' -------------------------------------------------------------------------------------------------
-comASSIGN
-' OPCODE 01 paramS paramD : SET(VARIABLE=paramD, VALUE=paramS)
-        call    #GetParam                     ' Get the ...
-store
-        mov     t2,tmp                        ' ... source value
-        call    #GetOpAddr                    ' Destination
-        wrword  t2,tmp                        ' Write the source value to the destination
-        jmp     #Command                      ' Keep running commands until PAUSE
-        
-' -------------------------------------------------------------------------------------------------
-comGOTO
-' OPCODE 03 offset : GOTO offset   
-        call    #ReadWord                     ' Get the relative offset
-doJump  add     programCounter,tmp            ' Add in the jump
-        and     programCounter,C_FFFF         ' Mask to a word
-        jmp     #command                      ' Run till pause
-        
-' -------------------------------------------------------------------------------------------------
-comPAUSE
-' OPCODE 08 paramN : PAUSE(TIME=paramN)        
-        call    #GetParam                     ' Get the ...
-        mov     pauseCounter,tmp              ' ... pause counter value
-        call    #UpdateDisplay                ' Draw the display  
-        jmp     #mainLoop                     ' Back to wait for pause
 
-' -------------------------------------------------------------------------------------------------        
-comSETPIXEL
-' OPCODE 0B param param  SET(PIXEL=param,COLOR=param)       
-
-        call    #GetParam                     ' PIXEL=param        
-        mov     p,tmp                         ' Hold pixel number
-        add     p,par_buffer                  ' Pointer to pixel buffer
-        call    #GetParam                     ' COLOR=param        
-        wrbyte  tmp,p                         ' Set the pixel value
-        jmp     #command                      ' Run till pause
-
-comMATH
-comRESLOCAL
-comCALL
-comRETURN
-comIF
-'
-comDEFCOLOR
-comDEFPATTERN
-comSETSOLID
-comDRAWPATTERN
-        jmp    #command            
-
-
-
-notOp04 djnz    c,#notOp05
-' OPCODE 05 nn oo param param MATH(DST=nn, OP=oo, LEFT=param, RIGHT=param)
-        rdbyte  p,programCounter              ' Get the ... 
-        add     programCounter,#1             ' ... variable number
-        shl     p,#1                          ' Two bytes each
-        add     p,variables                   ' Offset into variable table
-        rdbyte  val,programCounter            ' Get the ...
-        add     programCounter,#1             ' ... operation number        
-        call    #GetParam                     ' Get the ...
-        mov     p2,tmp                        ' ... left value
-        call    #GetParam                     ' Get the ...
-        mov     c,tmp                         ' ... right value
-        mov     tmp,p2                        ' We need the left value in tmp
-
-        cmp     val,#0 wz                     ' Special case for ...
-  if_z  jmp     #opMultiply                   ' ... multiply
-        cmp     val,#1 wz                     ' Special case for ...
-  if_z  jmp     #opDivide                     ' ... divide
-        cmp     val,#2 wz                     ' Special case for ...
-  if_z  jmp     #opModulo                     ' ... modulo
-
-        ' Some operations
-        '         MUL  00
-        '         DIV  01
-        '         MOD  02
-        ' 10_0000 ADD  20
-        ' 10_0001 SUB  21
-        ' 10_1001 NEG  19 
-        ' 01_1000 AND  18
-        ' 01_1010 OR   1A
-        ' 01_1011 XOR  1B
-        ' 00_1011 SHL  0B
-        ' 00_1010 SHR  0A
-
-        'mov c,val
-        'jmp #ErrorInC
-
-        shl     val,#3                        ' Shift into INSTR position for MOVI
-        or      val,#1                        ' Set R not fpr MOVI
-        movi    mathOP,val                    ' Set the math operation
-        nop                                   ' Required gap before using the modification
-        '
-mathOp  add     tmp,c                         ' Do the math
-        '
-        jmp     #store                        ' Store the result and run till pause
-
-opMultiply
-        mov     asm_x,tmp                     ' X ...
-        mov     asm_y,c                       ' ... times ...
-        call    #multiply                     ' ... Y
-        mov     tmp,asm_x                     ' Result in X
-        jmp     #store                        ' Store the result and run till pause
-opDivide
-        mov     asm_x,tmp                     ' X ...
-        mov     asm_y,c                       ' ... divided by ...
-        call    #sdiv32                       ' ... Y
-        mov     tmp,asm_y                     ' Result in Y
-        jmp     #store                        ' Store the result and run till pause
-opModulo
-        mov     asm_x,tmp                     ' X ...
-        mov     asm_y,c                       ' ... divided by ...
-        call    #sdiv32                       ' ... Y
-        mov     tmp,asm_x                     ' Remainder in X
-        jmp     #store                        ' Store the result and run till pause
-
-notOp05 djnz    c,#notOp06
-' OPCODE 06 mm ll op param param    (IF jumpIfNot, op, LEFT, RIGHT
-        call    #ReadWord                     ' Offset to GOTO if expression failed
-        mov     p,tmp                         ' Hold the offset in p for GOTO
-        rdbyte  val,programCounter            ' Get the ...
-        add     programCounter,#1             ' ... condition
-        call    #GetParam                     ' Left operator
-        mov     p2,tmp                        ' Hold in p2
-        call    #GetParam                     ' Right operator 
-
-        ' Some logic checks:
-        ' 1010 ==   0A
-        ' 0101 !=   05
-        ' 0001 >    01
-        ' 1100 <    0C
-        ' 0011 >=   03
-        ' 1110 <=   0E
-                        
-        ' No MOVC, so we'll do it manually
-        andn    logicOp,C_003C0000            ' 003C0000 iiii_iiff_ffcc_ccdd_dddd_ddds_ssss_ssss
-        shl     val,#18                       ' OR in ...
-        or      logicOp,val                   ' ... the condition
-        '
-        cmp     p2,tmp wz, wc                 ' Compare left with right
-        '
-logicOp jmp     #command                      ' PASSES ... next instruction and run till pause
-        '
-        mov     tmp,p                         ' Offset if failed
-        jmp     #doJump                       ' End of IF block and run till pause
-
-' -framepointer-
-' -return-
-' RetVal              <--Frame pointer
-' Param1                 (This is where SP and FP point for init and events)
-' Param2
-' Param3
-' Local1
-' Local2
-' (last framepointer) <--Stack pointer 
-' (last return) 
-' (last RetVal)
-
-' Calling a subroutine:
-'  - Push the frame pointer
-'  - Push the return address program counter
-'  - Set frame pointer to current stack ptr
-'  - Push 2 zeros (0 return value)
-'  - Push the call argument bytes on the stack
-'  - Change the program counter
-' Returning from a subroutine:
-'  - Set stack pointer to frame pointer - 2
-'  - Pop the program counter
-'  - Pop the frame pointer
-
-notOp06 djnz    c,#notOp07
-' OPCODE 07 mm ll    JSR
-        mov     p, programCounter              ' Return is ...
-        add     p, #2                          ' ... next instruction
-        wrword  p,stackPointer                 ' Write the return (these are long aligned)
-        add     stackPointer,#2                ' Slot for next time
-        jmp     #comGOTO                       ' Regular GOTO and run till pause        
-
-notOp07 djnz    c,#notOp08
-' OPCODE 08          RTS
-        sub     stackPointer,#2                ' The last entry on the stack
-        rdword  programCounter,stackPointer    ' Read the return address
-        jmp     #command                       ' Run till pause
-
-notOp08 djnz    c,#notOp09
-' OPCODE 09 param, param, param, param  DEFCOLOR(slot,white,green,red,blue)
-        call    #GetParam                ' Get the ...                      
-        mov     p,tmp                    ' ... color slot number
-        shl     p,#2                     ' Four bytes per slot
-        add     p,par_palette            ' Offset into colors
-        call    #GetParam                ' Get WHITE
-        mov     c, tmp                   ' Accumulate the color here
-        mov     p2,#3                    ' 3 more bytes to shift in
-getCol  call    #GetParam                ' Get color component GREEN, RED, BLUE
-        shl     c,#8                     ' Shift over existing value
-        or      c,tmp                    ' OR in this byte
-        djnz    p2,#getCol               ' Do all components        
-        wrlong  c,p                      ' Write the color slot
-        jmp     #command                 ' Run till pause        
-
-notOp09 djnz    c,#notOp0A
-' OPCODE 0A param  SOLID(color)
-        call    #GetParam                ' Get the color number
-        mov     p,par_buffer             ' Start of pixel buffer
-        mov     c,par_pixCount           ' Number of pixels on strip
-doStrip wrbyte  tmp,p                    ' Store color to buffer  
-        add     p,#1                     ' Next in buffer
-        djnz    c,#doStrip               ' Do all pixels
-        jmp     #command                 ' Run till pause
-
-notOp0A djnz    c,#notOp0B
-' 0B nn ww hh .....           PATTERN(num=0,width=3,height=3, ...)
-        rdbyte  p,programCounter         ' Pattern slot ...
-        add     programCounter,#1        ' ... number
-        shl     p,#1                     ' Two byte pointer
-        add     p,patterns               ' Offset to pattern pointer
-        wrword  programCounter,p         ' Set the pointer of this pattern
-        rdbyte  asm_x,programCounter     ' Get the ...
-        add     programCounter,#1        ' ... width
-        rdbyte  asm_y,programCounter     ' Get the ...
-        add     programCounter,#1        ' ... height
-        call    #multiply                ' Total bytes in pattern
-        add     programCounter,asm_x     ' Skip over pattern
-        jmp     #command                 ' Run till pause
-
-notOp0B djnz    c,#notOp0C
-' 0C param param param param  DRAWPATTERN(num=0,x=2,y=4,coffset=0)
-        call    #GetParam                ' Get the ...
-        mov     p,tmp                    ' ... pattern slot
-        shl     p,#1                     ' Two byte pointer
-        add     p,patterns               ' Offset to pattern pointer
-        rdword  p,p                      ' Get pointer to pattern
-        call    #GetParam                ' Get the ...
-        mov     asm_x,tmp                ' ... draw X
-        call    #GetParam                ' Get the ...
-        mov     asm_y,tmp                ' ... draw Y
-        call    #GetParam                ' Get the ...
-        mov     c,tmp                    ' ... color offset
-        '
-        rdbyte  width, p                 ' Get the ...
-        add     p,#1                     ' ... pattern width
-        rdbyte  height,p                 ' Get the ...
-        add     p,#1                     ' ... pattern height
-        '
-        mov     tmp2,height              ' Row counter   
-allRows
-        mov     tmp,width                ' Column counter
-allOfRow
-        rdbyte  val,p                    ' Get the pixel value
-        add     p,#1                     ' Next in pattern 
-        add     val,c                    ' Color offset            
-        call    #mapPixel                ' Set the pixel
-        add     asm_x,#1                 ' Next X on row
-        djnz    tmp,#allOfRow            ' Do all the pixels on the row
-        sub     asm_x,width              ' Back up to beginning of row
-        add     asm_y,#1                 ' Down to next row
-        djnz    tmp2,#allRows            ' Do all the rows
-        jmp     #command                 ' Run till pause        
-
-mapPixel
-' TODO for now, we'll assume left to right plates. In the future we need a way
-' of handling random geometries
-        mov     p2,#0                    ' Start at pixel 0
-        mov     bitCnt,asm_x             ' We will mangle the X
-wplates
-        cmp     bitCnt,#8 wz, wc         ' A whole plate to skip?
- if_ae  add     p2,#64                   ' YES ... add in a plate to pix num
- if_ae  sub     bitCnt,#8                ' YES ... subtract a plate from the X
- if_ae  jmp     #wplates                 ' YES ... keep skipping over plates
-        mov     pixCnt,asm_y             ' Each row ...
-        shl     pixCnt,#3                ' ... is 8 pixels
-        add     pixCnt,bitCnt             ' Offset pixel across the row
-        add     p2,pixCnt                ' Add in any whole plates
-        add     p2,par_buffer            ' Offset into buffer
-        wrbyte  val,p2                   ' Write the pixel
-mapPixel_ret
-        ret  
-
-notOp0C
-        mov     c,#%11110001             ' Unknown ...
-        jmp     #HaltShowErrorInC        ' ... opcode 
-        
 doEvent
         mov     p,events                 ' Pointer to events
 doEvent2
@@ -521,8 +243,306 @@ mdiv2                   cmpsub  asm_x,t1        wc
                         test    asm_n,#%10      wc       'restore sign, division result
                         negc    asm_y,asm_y              
 sdiv32_ret              ret
+  
+' -------------------------------------------------------------------------------------------------
+comASSIGN
+' OPCODE 01 paramS paramD : SET(VARIABLE=paramD, VALUE=paramS)
+        call    #GetParam                     ' Get the ...
+store
+        mov     t2,tmp                        ' ... source value
+        call    #GetOpAddr                    ' Destination
+        wrword  t2,tmp                        ' Write the source value to the destination
+        jmp     #Command                      ' Keep running commands until PAUSE
 
-             
+' -------------------------------------------------------------------------------------------------
+comMATH
+' OPCODE 02 paramL paramR oo paramD MATH(paramD = paramL oo paramR)
+        call    #GetParam                     ' Get the LEFT operand
+        mov     p,tmp                         ' Hold in p
+        call    #GetParam                     ' Get the RIGHT operand
+        mov     c,tmp                         ' Hold in c
+        rdbyte  val,programCounter            ' Get the ...
+        add     programCounter,#1             ' ... operation number
+        mov     tmp,p                         ' LEFT in tmp, RIGHT in c
+
+        cmp     val,#0 wz                     ' Special case for ...
+  if_z  jmp     #opMultiply                   ' ... multiply
+        cmp     val,#1 wz                     ' Special case for ...
+  if_z  jmp     #opDivide                     ' ... divide
+        cmp     val,#2 wz                     ' Special case for ...
+  if_z  jmp     #opModulo                     ' ... modulo
+
+        ' Some operations
+        '         MUL  00
+        '         DIV  01
+        '         MOD  02
+        ' 10_0000 ADD  20
+        ' 10_0001 SUB  21
+        ' 10_1001 NEG  19 
+        ' 01_1000 AND  18
+        ' 01_1010 OR   1A
+        ' 01_1011 XOR  1B
+        ' 00_1011 SHL  0B
+        ' 00_1010 SHR  0A
+
+        shl     val,#3                        ' Shift into INSTR position for MOVI
+        or      val,#1                        ' Set R not fpr MOVI
+        movi    mathOP,val                    ' Set the math operation
+        nop                                   ' Required gap before using the modification
+        '
+mathOp  add     tmp,c                         ' Do the math
+        '
+        jmp     #store                        ' Store the result and run till pause
+
+opMultiply
+        mov     asm_x,tmp                     ' X ...
+        mov     asm_y,c                       ' ... times ...
+        call    #multiply                     ' ... Y
+        mov     tmp,asm_x                     ' Result in X
+        jmp     #store                        ' Store the result and run till pause
+opDivide
+        mov     asm_x,tmp                     ' X ...
+        mov     asm_y,c                       ' ... divided by ...
+        call    #sdiv32                       ' ... Y
+        mov     tmp,asm_y                     ' Result in Y
+        jmp     #store                        ' Store the result and run till pause
+opModulo
+        mov     asm_x,tmp                     ' X ...
+        mov     asm_y,c                       ' ... divided by ...
+        call    #sdiv32                       ' ... Y
+        mov     tmp,asm_x                     ' Remainder in X
+        jmp     #store                        ' Store the result and run till pause
+        
+' -------------------------------------------------------------------------------------------------
+comGOTO
+' OPCODE 03 offset : GOTO offset   
+        call    #ReadWord                     ' Get the relative offset
+doJump  add     programCounter,tmp            ' Add in the jump
+        and     programCounter,C_FFFF         ' Mask to a word
+        jmp     #command                      ' Run till pause
+
+' -------------------------------------------------------------------------------------------------
+comRESLOCAL
+' OPCODE 04 PP
+        rdbyte  tmp, programCounter           ' Read number ...
+        add     programCounter,#1             ' ... of variables to reserve
+        shl     tmp,#1                        ' Each variable is two bytes
+        add     stackPointer,tmp              ' Make room for the vars on the stack
+        jmp     #command                      ' Run till pause
+
+' -------------------------------------------------------------------------------------------------        
+
+' -framepointer-
+' -return-
+' Param1 (also return) <--Frame pointer
+' Param2              (<--This is where SP and FP point for init and events)
+' Param3
+' Local1
+' Local2
+' (last framepointer)  <--Stack pointer 
+' (last return) 
+' (last RetVal)
+
+' Calling a subroutine:
+'  - Push the frame pointer
+'  - Push the return address program counter
+'  - Set frame pointer to current stack ptr
+'  - Push the call argument bytes on the stack
+'  - Change the program counter
+' Returning from a subroutine:
+'  - Set stack pointer to frame pointer
+'  - Pop the program counter
+'  - Pop the frame pointer
+                                   
+comCALL
+' OPCODE 05 PP PP NN ..
+              
+        wrword  framePointer,stackPointer     ' Save the ...
+        add     stackPointer,#2               ' ... frame pointer
+        mov     t2,stackPointer               ' This is where the return address goes when we know it
+        add     stackPointer,#2               ' Leave space for the return address
+        mov     framePointer,stackPointer     ' This is where the parameters/locals start
+
+        rdbyte  p,programCounter wz           ' Get the number ...
+        add     programCounter,#1             ' ... of parameters
+        jmp     #allParamsChk                 ' "while" loop ... check the condition first
+        
+allParams        
+        call    #GetParam                     ' Get the next operand being passed
+        wrword  tmp,stackPointer              ' Push the value ...
+        add     stackPointer,#2               ' ... onto stack 
+        sub     p,#1 wz                       ' All params done?
+allParamsChk
+  if_nz jmp     #allParams                    ' No ... go back for all
+
+comCALL_1
+        call    #ReadWord                     ' Get the relative offset
+        wrword  programCounter,t2             ' This is the return address
+        jmp     #doJump                       ' Start the function
+
+' -------------------------------------------------------------------------------------------------
+comRETURN
+' OPCODE 06
+
+        mov     stackPointer,framePointer
+        sub     stackPointer,#2
+        rdword  programCounter,stackPointer
+        sub     stackPointer,#2
+        rdword  framePointer,stackPointer
+        jmp     #command
+
+' -------------------------------------------------------------------------------------------------
+comIF
+' OPCODE 07 PP PP OPL NN OPR : IF(OPL nn OPR) else GOTO PP PP
+        call    #ReadWord                     ' Offset to GOTO if expression failed
+        mov     p,tmp                         ' Hold the offset in p for GOTO
+        call    #GetParam                     ' Left operator
+        mov     p2,tmp                        ' Hold in p2
+        rdbyte  val,programCounter            ' Get the ...
+        add     programCounter,#1             ' ... logic operator
+        call    #GetParam                     ' Right operator in tmp
+        
+        ' Some logic checks:
+        ' 1010 ==   0A
+        ' 0101 !=   05
+        ' 0001 >    01
+        ' 1100 <    0C
+        ' 0011 >=   03
+        ' 1110 <=   0E
+                        
+        ' No MOVC, so we'll do it manually
+        andn    logicOp,C_003C0000            ' 003C0000 iiii_iiff_ffcc_ccdd_dddd_ddds_ssss_ssss
+        shl     val,#18                       ' OR in ...
+        or      logicOp,val                   ' ... the condition
+        '
+        cmp     p2,tmp wz, wc                 ' Compare left with right
+        '
+logicOp jmp     #command                      ' PASSES ... next instruction and run till pause
+        '
+        mov     tmp,p                         ' Offset if failed
+        jmp     #doJump                       ' End of IF block and run till pause
+        
+' -------------------------------------------------------------------------------------------------
+comPAUSE
+' OPCODE 08 paramN : PAUSE(TIME=paramN)        
+        call    #GetParam                     ' Get the ...
+        mov     pauseCounter,tmp              ' ... pause counter value
+        call    #UpdateDisplay                ' Draw the display  
+        jmp     #mainLoop                     ' Back to wait for pause
+        
+' ------------------------------------------------------------------------------------------------- 
+comDEFCOLOR
+' OPCODE 09 param, param, param, param  DEFCOLOR(slot,white,green,red,blue)
+        call    #GetParam                ' Get the ...                      
+        mov     p,tmp                    ' ... color slot number
+        shl     p,#2                     ' Four bytes per slot
+        add     p,par_palette            ' Offset into colors
+        call    #GetParam                ' Get WHITE
+        mov     c, tmp                   ' Accumulate the color here
+        mov     p2,#3                    ' 3 more bytes to shift in
+getCol  call    #GetParam                ' Get color component GREEN, RED, BLUE
+        shl     c,#8                     ' Shift over existing value
+        or      c,tmp                    ' OR in this byte
+        djnz    p2,#getCol               ' Do all components        
+        wrlong  c,p                      ' Write the color slot
+        jmp     #command                 ' Run till pause
+
+' ------------------------------------------------------------------------------------------------- 
+comDEFPATTERN
+' OPCODE 0A nn ww hh .....  PATTERN(num=0,width=3,height=3, ...)
+        rdbyte  p,programCounter         ' Pattern slot ...
+        add     programCounter,#1        ' ... number
+        shl     p,#1                     ' Two byte pointer
+        add     p,patterns               ' Offset to pattern pointer
+        wrword  programCounter,p         ' Set the pointer of this pattern
+        rdbyte  asm_x,programCounter     ' Get the ...
+        add     programCounter,#1        ' ... width
+        rdbyte  asm_y,programCounter     ' Get the ...
+        add     programCounter,#1        ' ... height
+        call    #multiply                ' Total bytes in pattern
+        add     programCounter,asm_x     ' Skip over pattern
+        jmp     #command                 ' Run till pause
+
+' -------------------------------------------------------------------------------------------------        
+comSETPIXEL
+' OPCODE 0B param param  SET(PIXEL=param,COLOR=param)       
+
+        call    #GetParam                     ' PIXEL=param        
+        mov     p,tmp                         ' Hold pixel number
+        add     p,par_buffer                  ' Pointer to pixel buffer
+        call    #GetParam                     ' COLOR=param        
+        wrbyte  tmp,p                         ' Set the pixel value
+        jmp     #command                      ' Run till pause
+
+' -------------------------------------------------------------------------------------------------        
+comSETSOLID
+' OPCODE 0C param  SOLID(color)
+        call    #GetParam                ' Get the color number
+        mov     p,par_buffer             ' Start of pixel buffer
+        mov     c,par_pixCount           ' Number of pixels on strip
+doStrip wrbyte  tmp,p                    ' Store color to buffer  
+        add     p,#1                     ' Next in buffer
+        djnz    c,#doStrip               ' Do all pixels
+        jmp     #command                 ' Run till pause
+   
+' ------------------------------------------------------------------------------------------------- 
+comDRAWPATTERN
+' OPCODE 0D param param param param  DRAWPATTERN(num=0,x=2,y=4,coffset=0)
+        call    #GetParam                ' Get the ...
+        mov     p,tmp                    ' ... pattern slot
+        shl     p,#1                     ' Two byte pointer
+        add     p,patterns               ' Offset to pattern pointer
+        rdword  p,p                      ' Get pointer to pattern
+        call    #GetParam                ' Get the ...
+        mov     asm_x,tmp                ' ... draw X
+        call    #GetParam                ' Get the ...
+        mov     asm_y,tmp                ' ... draw Y
+        call    #GetParam                ' Get the ...
+        mov     c,tmp                    ' ... color offset
+        '
+        rdbyte  width, p                 ' Get the ...
+        add     p,#1                     ' ... pattern width
+        rdbyte  height,p                 ' Get the ...
+        add     p,#1                     ' ... pattern height
+        '
+        mov     tmp2,height              ' Row counter   
+allRows
+        mov     tmp,width                ' Column counter
+allOfRow
+        rdbyte  val,p                    ' Get the pixel value
+        add     p,#1                     ' Next in pattern 
+        add     val,c                    ' Color offset            
+        call    #mapPixel                ' Set the pixel
+        add     asm_x,#1                 ' Next X on row
+        djnz    tmp,#allOfRow            ' Do all the pixels on the row
+        sub     asm_x,width              ' Back up to beginning of row
+        add     asm_y,#1                 ' Down to next row
+        djnz    tmp2,#allRows            ' Do all the rows
+        jmp     #command                 ' Run till pause        
+
+mapPixel
+' TODO for now, we'll assume left to right plates. In the future we need a way
+' of handling random geometries
+        mov     p2,#0                    ' Start at pixel 0
+        mov     bitCnt,asm_x             ' We will mangle the X
+wplates
+        cmp     bitCnt,#8 wz, wc         ' A whole plate to skip?
+ if_ae  add     p2,#64                   ' YES ... add in a plate to pix num
+ if_ae  sub     bitCnt,#8                ' YES ... subtract a plate from the X
+ if_ae  jmp     #wplates                 ' YES ... keep skipping over plates
+        mov     pixCnt,asm_y             ' Each row ...
+        shl     pixCnt,#3                ' ... is 8 pixels
+        add     pixCnt,bitCnt             ' Offset pixel across the row
+        add     p2,pixCnt                ' Add in any whole plates
+        add     p2,par_buffer            ' Offset into buffer
+        wrbyte  val,p2                   ' Write the pixel
+mapPixel_ret
+        ret  
+
+notOp0C
+        mov     c,#%11110001             ' Unknown ...
+        jmp     #HaltShowErrorInC        ' ... opcode
+                     
 ' -------------------------------------------------------------------------------------------------
 HaltShowErrorInC
 ' Show 8 bit error value in C and INFINITE LOOP
@@ -651,7 +671,6 @@ C_8000           long $8000        ' 16-bit sign bit
 C_FFFF_0000      long $FFFF_0000   ' Sign extend
 C_FFFF_8000      long $FFFF_8000   ' Sign extend
 C_FFFF           long $FFFF        ' Used to mask 2-byte signed numbers
-C_7FFF           long $7FFF        ' Used to mask variable number
 C_003C0000       long $003C0000    ' Mask for SPIN conditional field
 '
 ONE              long 1            ' Used ... 

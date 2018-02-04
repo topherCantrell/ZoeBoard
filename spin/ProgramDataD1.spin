@@ -1,6 +1,6 @@
 CON
 
-  IOPIN      = 15
+  IOPIN      = %00000000_00000000_10000000_00000000 
   NUMPIXELS  = 8
   BITSTOSEND = 24
   NUMGLOBALS = 4
@@ -14,7 +14,7 @@ CON
   OFS_EVENTTAB   = OFS_PIXBUF     + NUMPIXELS
 
   INIT_PC        = OFS_EVENTTAB   + 16
-  
+
 pub getProgram
   return @zoeProgram
 
@@ -40,7 +40,7 @@ zoeProgram
   word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 'variables ' Variable storage (2 bytes each)
-  word 3,4,5,6
+  word 3,7,5,6
 
 'pixbuffer ' 1 byte per pixel
   byte 0,0,0,0,0,0,0,0
@@ -51,9 +51,14 @@ zoeProgram
   byte 0
 
 'INIT_handler
-  byte $0B,   $80,03,   0,2     ' SET(pixel=0, color=2) 
-  byte $08,   $03,$E8        ' PAUSE(time=$3E8 1000ms)
-  byte $0B,   $80,03,   0,0     ' SET(pixel=0, color=0)
-  byte $08,   $03,$E8        ' PAUSE(time=$3E8 1000ms)
 
-  byte $03,   $FF, $ED       ' GOTO -19
+  byte $05,   2, $80,$01, 0,4,   0,11  ' CALL +11
+  byte $05,   2, $00,$03, 0,4,   0,3   ' CALL +3 
+  byte $03,   $FF,$ED              ' GOTO -19
+
+  byte $04, 10               ' RESLOCAL(num=10)
+  byte $0B,   $81,$00,  0,2  ' SET(pixel=0, color=2) 
+  byte $08,   $03,$E8        ' PAUSE(time=$3E8 1000ms)
+  byte $0B,   $81,$00,  0,0  ' SET(pixel=0, color=0)
+  byte $08,   $03,$E8        ' PAUSE(time=$3E8 1000ms)
+  byte $06                   ' RETURN
