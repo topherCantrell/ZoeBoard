@@ -28,6 +28,10 @@ public class Program {
 		return -1;
 	}
 	
+	public int findGlobal(String name) {
+		return vars.indexOf(name);
+	}
+	
 	/**
 	 * Remove non-needed spaces from a string. Spaces between tokens are necessary, like "var color".
 	 * Non-needed spaces are things like "x,  y,  z".

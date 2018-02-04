@@ -66,7 +66,7 @@ tttt:
   - 0010 reference the incoming return value (returned by the last function called). i is ignored.
 
 ```
-01 OP OP                ; Variable assignment: [OP] = OP
+01 OPL OPR              ; Variable assignment: OPR = OPL
 02 OPL OPR MM OPD       ; Math expression: OPD = OPL operator OPR -- operator MM: 
                         ;   00=MUL, 01=DIV, 02=MOD, 20=ADD, 21=SUB, 19=NEG
                         ;   18=AND, 1A=OR,  1B=XOR, 0B=SHL, 0A=SHR

@@ -256,8 +256,9 @@ store
 
 ' -------------------------------------------------------------------------------------------------
 comMATH
-' OPCODE 02 paramL paramR oo paramD MATH(paramD = paramL oo paramR)
-        call    #GetParam                     ' Get the LEFT operand
+' OPCODE 02 paramL paramR oo paramD MATH(paramD = paramL oo paramR)   
+
+        call    #GetParam                     ' Get the LEFT operand        
         mov     p,tmp                         ' Hold in p
         call    #GetParam                     ' Get the RIGHT operand
         mov     c,tmp                         ' Hold in c

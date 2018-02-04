@@ -4,18 +4,20 @@
 
 configure(D1,96,true)
 
-//include myFunctions.zoe
-
-var cnt
-var delay
+var masterPix
+var masterColor
 
 function init() {
       
+   masterPix = 8
+   masterColor = masterPix/4
+   masterPix = masterPix - 1
+      
 here:
 
-   setPixel(0,1)
+   setPixel(masterPix,masterColor)
    PAUSE(1000)
-   setPixel(0,0)
+   setPixel(masterPix,0)
    PAUSE(1000)
    
    goto here

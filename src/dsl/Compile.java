@@ -5,6 +5,14 @@ import java.util.List;
 
 public class Compile {
 	
+	Program prog;
+	
+	String [] MATHOPS = {"+",  "-",  "*",  "/",  "%",  "&",  "|",  "^",  "<<", ">>"};
+	int [] MATHOPSVAL = {0x20, 0x21, 0x00, 0x01, 0x02, 0x18, 0x1A, 0x1B, 0x0B, 0x0A};
+	
+	String [] LOGICOPS = {"==", "!=", ">=", "<=", ">",  "<"};
+	int [] LOGICOPSVAL = {0x0A, 0x05, 0x03, 0x0E, 0x01, 0x0C};
+	
 	public void dumpCodeLines(String message, List<CodeLine> lines) {
 		System.out.println(message);
 		for(CodeLine c : lines) {
@@ -17,6 +25,8 @@ public class Compile {
 	}
 	
 	public void doCompile(Program prog) {
+		
+		this.prog = prog;
 		
 		// Hoist all the "var" definitions
 		prog.vars = hoistVars(prog.globalLines);
@@ -76,7 +86,12 @@ public class Compile {
 			c.data.add((v>>8)&0xFF);
 			c.data.add(v&0xFF);			
 		} catch (Exception e) {
-			throw new RuntimeException("LOTS MORE TO IMPLEMENT");
+			int i = prog.findGlobal(op);
+			if(i<0) {
+				throw new CompileException("TODO IMPLEMENT MORE ... STACK VARIABLE",c);
+			}
+			c.data.add(0x80);
+			c.data.add(i);
 		}
 	}
 	
@@ -147,6 +162,44 @@ public class Compile {
 		}
 	}
 	
+	void parseMATH(Function fun, CodeLine c, int op, boolean firstPass) {
+		if(firstPass) {
+			c.data.add(0x02);
+			c.data.add(0x00);
+			c.data.add(0x00);
+			c.data.add(0x00);
+			c.data.add(0x00);
+			c.data.add(0x00);
+			c.data.add(0x00);
+			c.data.add(0x00);			
+		} else {
+			int i = c.text.indexOf("=");
+			int j = c.text.indexOf(MATHOPS[op]);
+			c.data.clear();
+			c.data.add(0x02);
+			parseOperand(fun,c,c.text.substring(i+1, j));
+			parseOperand(fun,c,c.text.substring(j+MATHOPS[op].length()));
+			c.data.add(MATHOPSVAL[op]);
+			parseOperand(fun,c,c.text.substring(0, i));
+		}		
+	}
+	
+	void parseASSIGN(Function fun, CodeLine c, boolean firstPass) {
+		int i = c.text.indexOf('=');
+		if(firstPass) {
+			c.data.add(0x01);
+			c.data.add(0x00); // Place holder
+			c.data.add(0x00); // Place holder
+			c.data.add(0x00); // Place holder
+			c.data.add(0x00); // Place holder
+		} else {
+			c.data.clear();
+			c.data.add(0x01);
+			parseOperand(fun,c,c.text.substring(i+1));
+			parseOperand(fun,c,c.text.substring(0, i));			
+		}		
+	}
+	
 	void compileFunction(Function fun, boolean firstPass) {
 		for(int x=0;x<fun.codeLines.size();++x) {
 			CodeLine c = fun.codeLines.get(x);
@@ -157,7 +210,20 @@ public class Compile {
 			}
 			
 			if(c.text.contains("=")) {
-				throw new RuntimeException("ASSIGNMENT/MATH NOT IMPLEMENTED YET");
+				boolean isMath = false;
+				for(int mx=0;mx<MATHOPS.length;++mx) {
+					String s = MATHOPS[mx];
+					if(c.text.contains(s)) {
+						parseMATH(fun,c,mx,firstPass);
+						isMath = true;
+						break;
+					}
+				}
+				
+				if(!isMath) {
+					parseASSIGN(fun,c,firstPass);
+				}
+				continue;
 			}
 			
 			if(c.text.startsWith("PAUSE(")) {

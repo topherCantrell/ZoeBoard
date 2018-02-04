@@ -25,7 +25,7 @@ zoeProgram
   byte 0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0
 
 'palette  ' 64 longs (64 colors)
-  long 0,$050805,$050805,0,0,0,0,0,0,0,0,0,0,0,0,0
+  long 0,$000800,$000008,$080000,$080808,0,0,0,0,0,0,0,0,0,0,0
   long 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   long 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   long 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -40,7 +40,7 @@ zoeProgram
   word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 'variables ' Variable storage (2 bytes each)
-  word 3,7,5,6
+  word 0,0,0,0
 
 'pixbuffer ' 1 byte per pixel
   byte 0,0,0,0,0,0,0,0
@@ -52,12 +52,17 @@ zoeProgram
 
 
 ' ## Function init
+    byte $01,$00,$08,$80,$01    '    masterPix = 8
+    byte $02,$80,$01,$00,$04,$01,$80,$00'    masterColor = masterPix/4
+    byte $02,$80,$01,$00,$01,$21,$80,$01'    masterPix = masterPix - 1
 ' here:
-    byte $0B,$00,$00,$00,$01    '    setPixel(0,1)
+    byte $0B,$80,$01,$80,$00    '    setPixel(masterPix,masterColor)
     byte $08,$03,$E8            '    PAUSE(1000)
-    byte $0B,$00,$00,$00,$00    '    setPixel(0,0)
+    byte $0B,$80,$01,$00,$00    '    setPixel(masterPix,0)
     byte $08,$03,$E8            '    PAUSE(1000)
     byte $03,$FF,$ED            '    goto here
+
+
 
 
 
