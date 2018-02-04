@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Program {
 	
@@ -19,7 +17,16 @@ public class Program {
 	List<String> vars;
 	
 	List<CodeLine> globalLines;
-	Map<String,Function> functions;
+	List<Function> functions;
+	
+	public int findFunction(String name) {
+		for(int x=0;x<functions.size();++x) {
+			if(functions.get(x).name.equals(name)) {
+				return x;
+			}
+		}
+		return -1;
+	}
 	
 	/**
 	 * Remove non-needed spaces from a string. Spaces between tokens are necessary, like "var color".
@@ -59,7 +66,7 @@ public class Program {
 		int lineNumber = 0;
 		
 		ret.globalLines = new ArrayList<CodeLine>();
-		ret.functions = new HashMap<String,Function>();
+		ret.functions = new ArrayList<Function>();
 		
 		Function currentFunction = null;
 		List<String> currentFunctionLabels = new ArrayList<String>();
@@ -85,7 +92,7 @@ public class Program {
 				String incName = s.substring(8);				
 				Program incProg = Program.load(incName);
 				ret.globalLines.addAll(incProg.globalLines);
-				ret.functions.putAll(incProg.functions);
+				ret.functions.addAll(incProg.functions);
 				continue;
 			}
 			
@@ -131,15 +138,19 @@ public class Program {
 				}
 				currentFunction = new Function();
 				currentFunction.name = s.substring(0,i);
-				if(ret.functions.containsKey(currentFunction.name)) {
+				int ch = ret.findFunction(currentFunction.name);
+				
+				if(ch>=0) {
 					throw new CompileException("Function name already exists",c);
-				}
-				ret.functions.put(currentFunction.name, currentFunction);
+				}	
+				ret.functions.add(currentFunction);
 				currentFunction.codeLines = new ArrayList<CodeLine>();
 				currentFunction.arguments = new ArrayList<String>();
 				String [] args = s.substring(i+1,j).split(",");
 				for(String arg : args) {
-					currentFunction.arguments.add(arg);
+					if(!arg.isEmpty()) {
+						currentFunction.arguments.add(arg);
+					}
 				}				
 			} else if(currentFunction==null) {
 				ret.globalLines.add(c);

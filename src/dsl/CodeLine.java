@@ -1,5 +1,8 @@
 package dsl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CodeLine {
 
 	public String fileName;
@@ -9,6 +12,8 @@ public class CodeLine {
 	public String text;
 	
 	public boolean isLabel;
+	
+	List<Integer> data = new ArrayList<Integer>();
 	
 	public String toString() {
 		return "File:"+fileName+" Line:"+lineNumber+" '"+originalText+"'";

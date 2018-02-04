@@ -4,44 +4,20 @@
 
 configure(D1,96,true)
 
-include myFunctions.zoe
+//include myFunctions.zoe
 
 var cnt
 var delay
 
 function init() {
-
-   var g = cnt
-   var x = g + 1
-   
-   x = x + 5
-   
+      
 here:
 
-   g = doStuff(1,x,3)
+   setPixel(0,1)
+   PAUSE(1000)
+   setPixel(0,0)
    PAUSE(1000)
    
    goto here
 
-}
-
-function doStuff(a,b,c) {
-
-  var x = 10
-  var y = 20
-  
-  SOLID(y)
-  
-  if(x<=y) {
-      y = 2
-  } else if(x==2) {
-      y = 3
-  } else {
-      y = 4
-  }
-  
-here:
-
-  return a
-  
 }

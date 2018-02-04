@@ -5,19 +5,179 @@ import java.util.List;
 
 public class Compile {
 	
+	public void dumpCodeLines(String message, List<CodeLine> lines) {
+		System.out.println(message);
+		for(CodeLine c : lines) {
+			if(c.isLabel) {
+				System.out.println("##"+c.text+"##");
+			} else {
+				System.out.println(c.text);
+			}
+		}		
+	}
+	
 	public void doCompile(Program prog) {
 		
 		// Hoist all the "var" definitions
 		prog.vars = hoistVars(prog.globalLines);
-		System.out.println(prog.vars);
-		for(Function fun : prog.functions.values()) {
+		//dumpCodeLines("----Global-----",prog.globalLines);
+		//System.out.println(prog.vars);
+		for(Function fun : prog.functions) {
 			fun.localVars = hoistVars(fun.codeLines);
-			System.out.println(fun.localVars);
+			//dumpCodeLines("----Function "+fun.name+"----",fun.codeLines);
+			//System.out.println(fun.localVars);
 		}
 		
 		// Read the "configure" command
 		readConfigure(prog);
+		
+		if(prog.globalLines.size()>1) {
+			throw new CompileException("Not allowed in global area",prog.globalLines.get(1));
+		}
+		
+		// Check the entry "init" function
+		int ch = prog.findFunction("init");
+		if(ch<0) {
+			throw new CompileException("Must have an 'init()' function",null);
+		}
+		
+		Function init = prog.functions.get(ch);
+		
+		if(init.arguments.size()!=0) {
+			throw new CompileException("The 'init()' function must take no arguments",null);
+		}
+		
+		// Function by function, line by line
+		
+		for(Function fun : prog.functions) {
+			compileFunction(fun,true);
+			compileFunction(fun,false);
+		}
 				
+	}
+	
+	int findLabel(Function fun,String lab) {
+		for(int x=0;x<fun.codeLines.size();++x) {
+			CodeLine c = fun.codeLines.get(x);
+			if(c.isLabel && c.text.equals(lab)) {
+				return x;
+			}
+		}
+		return -1;
+	}
+	
+	void parseOperand(Function fun, CodeLine c, String op) {
+		try {
+			int v = Integer.parseInt(op);
+			if(v<-16384 || v>16383) {
+				throw new CompileException("Constant out of range",c);
+			}
+			v = v&0x7FFF;
+			c.data.add((v>>8)&0xFF);
+			c.data.add(v&0xFF);			
+		} catch (Exception e) {
+			throw new RuntimeException("LOTS MORE TO IMPLEMENT");
+		}
+	}
+	
+	void parsePAUSE(Function fun,CodeLine c,boolean firstPass) {
+		if(firstPass) {
+			String t = c.text.substring(6);
+			if(!t.endsWith(")")) {
+				throw new CompileException("Expected closing ')'",c);
+			}
+			t = t.substring(0, t.length()-1);
+			c.data.add(0x08);
+			parseOperand(fun,c,t);			
+		}
+	}
+	
+	void parseSETPIXEL(Function fun, CodeLine c, boolean firstPass) {
+		if(firstPass) {
+			String t = c.text.substring(9);
+			if(!t.endsWith(")")) {
+				throw new CompileException("Expected closing ')'",c);
+			}
+			t = t.substring(0, t.length()-1);
+			String [] ops = t.split(",");
+			if(ops.length!=2) {
+				throw new CompileException("Expected 2 operands (pixelNumber and color)",c);
+			}
+			c.data.add(0x0B);
+			parseOperand(fun,c,ops[0]);
+			parseOperand(fun,c,ops[1]);
+		}
+	}
+	
+	void parseGOTO(Function fun, CodeLine c, int index, boolean firstPass) {
+		if(firstPass) {
+			c.data.add(0x03);
+			c.data.add(0x00); // Place holder
+			c.data.add(0x00); // Place holder
+		} else {
+			String dst = c.text.substring(5);
+			int i = findLabel(fun,dst);
+			if(i<0) {
+				throw new CompileException("Label not found",c);
+			}
+			if(index<i) {
+				int ofs = 0;
+				while(index<i) {
+					ofs = ofs + fun.codeLines.get(index).data.size();
+					++index;
+				}
+				if(ofs>32767) {
+					throw new CompileException("Jump out of range",c);
+				}
+				c.data.set(1, (ofs>>8)&0xFF);
+				c.data.set(2, (ofs&0xFF));
+			} else {
+				int ofs = 0;
+				do {
+					ofs = ofs - fun.codeLines.get(index).data.size();
+					index = index - 1;
+				} while(index>i);
+				if(ofs<-32768) {
+					throw new CompileException("Jump out of range",c);
+				}
+				//System.out.println(ofs);
+				c.data.set(1,  (ofs>>8)&0xFF);
+				c.data.set(2, (ofs&0xFF));
+			}
+		}
+	}
+	
+	void compileFunction(Function fun, boolean firstPass) {
+		for(int x=0;x<fun.codeLines.size();++x) {
+			CodeLine c = fun.codeLines.get(x);
+			if(c.isLabel) continue;
+									
+			if(c.text.startsWith("if(")) {
+				throw new RuntimeException("IF NOT IMPLEMENTED YET");
+			}
+			
+			if(c.text.contains("=")) {
+				throw new RuntimeException("ASSIGNMENT/MATH NOT IMPLEMENTED YET");
+			}
+			
+			if(c.text.startsWith("PAUSE(")) {
+				parsePAUSE(fun,c,firstPass);
+				continue;
+			}
+			
+			if(c.text.startsWith("setPixel(")) {
+				parseSETPIXEL(fun,c,firstPass);
+				continue;
+			}
+			
+			if(c.text.startsWith("goto ")) {
+				parseGOTO(fun,c, x, firstPass);
+				continue;
+			}
+			
+			throw new CompileException("Unknown instruction",c);
+			
+		}
 	}
 	
 	void readConfigure(Program prog) {
@@ -59,7 +219,8 @@ public class Compile {
 	
 	static List<String> hoistVars(List<CodeLine> lines) {
 		List<String> vars = new ArrayList<String>();
-		for(CodeLine c : lines) {
+		for(int x=lines.size()-1;x>=0;x=x-1) {
+			CodeLine c = lines.get(x);		
 			if(c.text.startsWith("var ")) {
 				String s = c.text;
 				int i = s.indexOf("=");
@@ -69,6 +230,13 @@ public class Compile {
 					throw new CompileException("Var already defined",c);
 				}
 				vars.add(s);
+				if(i>=0) {
+					// This is an assignment ... keep the X=Y part
+					c.text = c.text.substring(4);
+				} else {
+					// This is a declaration ... remove it from the code
+					lines.remove(x);
+				}
 			}
 		}
 		return vars;
@@ -77,11 +245,14 @@ public class Compile {
 	public static void main(String[] args) throws Exception {
 		
 		try {
-		// Load the lines of code
-		Program prog = Program.load("New.zoe");
+			// Load the lines of code
+			Program prog = Program.load("New.zoe");
+			
+			Compile comp = new Compile();		
+			comp.doCompile(prog);
+			
+			ToSpin.toSpin(prog);
 		
-		Compile comp = new Compile();		
-		comp.doCompile(prog);
 		} catch (CompileException e) {
 			//System.out.println(e.getMessage());
 			System.out.println(e.code);
