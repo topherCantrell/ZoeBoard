@@ -10,6 +10,7 @@ public class Compile {
 	String [] MATHOPS = {"+",  "-",  "*",  "/",  "%",  "&",  "|",  "^",  "<<", ">>"};
 	int [] MATHOPSVAL = {0x20, 0x21, 0x00, 0x01, 0x02, 0x18, 0x1A, 0x1B, 0x0B, 0x0A};
 	
+	// Longer matches defined first giving match-precedence for things like ">=" over ">"
 	String [] LOGICOPS = {"==", "!=", ">=", "<=", ">",  "<"};
 	int [] LOGICOPSVAL = {0x0A, 0x05, 0x03, 0x0E, 0x01, 0x0C};
 	
@@ -200,21 +201,46 @@ public class Compile {
 		}		
 	}
 	
+	void parseIF(Function fun, CodeLine c, boolean firstPass) {
+		int i = c.text.lastIndexOf(")");
+		if(i<0) {
+			throw new CompileException("Expected ')'",c);
+		}
+		System.out.println(c.text);
+		if(!c.text.substring(i+1,i+5).equals("then")) {
+			throw new CompileException("Expected 'then'",c);
+		}
+		String lab = c.text.substring(i+5);
+		String expr = c.text.substring(3,i);
+		int op = -1;
+		int opIndex = -1;
+		for(int x=0;x<LOGICOPS.length;++x) {
+			opIndex = expr.indexOf(LOGICOPS[x]);
+			if(opIndex>=0) {
+				op = x;
+				break;
+			}
+		}		
+		if(op<0) {
+			throw new CompileException("Unknown operation",c);
+		}
+		String left = expr.substring(0,opIndex);
+		String right = expr.substring(opIndex+LOGICOPS[op].length());
+		
+		System.out.println("::"+left+"::"+LOGICOPS[op]+"::"+right+"::"+lab);
+		
+		throw new RuntimeException("IMPLEMENT ME");
+	}
+	
 	void compileFunction(Function fun, boolean firstPass) {
 		for(int x=0;x<fun.codeLines.size();++x) {
 			CodeLine c = fun.codeLines.get(x);
 			if(c.isLabel) continue;
-									
+				
+			// if(op ? op) then label
 			if(c.text.startsWith("if(")) {
-				/*
-				 * if(expression) {
-				 *   could be nested!
-				 * } else {
-				 *   is optional
-				 *   todo change else-if to standard form
-				 * }
-				 */
-				throw new RuntimeException("IF NOT IMPLEMENTED YET");
+				parseIF(fun,c,firstPass);
+				continue;				
 			}
 			
 			if(c.text.contains("=")) {

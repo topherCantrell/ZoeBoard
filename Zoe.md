@@ -74,9 +74,8 @@ tttt:
 04 PP                   ; RESLOCAL numberOfLocalVars=PP (unsigned byte)
 05 PP PP NN ..          ; CALL location=PPPP (16 bit signed offset), NN=number of values passed, ..= value words
 06                      ; RETURN
-O7 PP PP OP NN OP       ; IF(OP logic OP) else GOTO PPPP -- logic NN: 
+O7 PP PP OP NN OP       ; IF(OP logic OP) then PPPP -- logic NN: 
                         ; 0A=equals, 05=notEquals, 01=greater, 0C=lessThan, 03=greaterEquals, 0E=lessThanEquals
-
 08 OP                   ; PAUSE time=OP
 09 OPS OPW OPG OPR OPB  ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
 0A OP NN WW HH ..       ; DEFPATTERN number=OP, length=NN, width height data ..

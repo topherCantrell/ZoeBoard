@@ -394,7 +394,7 @@ comRETURN
 
 ' -------------------------------------------------------------------------------------------------
 comIF
-' OPCODE 07 PP PP OPL NN OPR : IF(OPL nn OPR) else GOTO PP PP
+' OPCODE 07 PP PP OPL NN OPR : IF(OPL nn OPR) then PP PP
         call    #ReadWord                     ' Offset to GOTO if expression failed
         mov     p,tmp                         ' Hold the offset in p for GOTO
         call    #GetParam                     ' Left operator
@@ -418,10 +418,11 @@ comIF
         '
         cmp     p2,tmp wz, wc                 ' Compare left with right
         '
-logicOp jmp     #command                      ' PASSES ... next instruction and run till pause
-        '
-        mov     tmp,p                         ' Offset if failed
-        jmp     #doJump                       ' End of IF block and run till pause
+logicOp jmp     #logicPASS                    ' Expression TRUE ... take the jump
+        jmp     #command                      ' Expression FALSE ... keep going
+logicPASS        
+        mov     tmp,p                         ' Offset if TRUE
+        jmp     #doJump                       ' Go to location and run until pause
         
 ' -------------------------------------------------------------------------------------------------
 comPAUSE

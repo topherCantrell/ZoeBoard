@@ -1,14 +1,11 @@
-
-// This is a comment
-// cool
-
 configure(D1,96,true)
 
 var masterPix
-var masterColor
 
 function init() {
-      
+   
+restart:
+   
    masterPix = 0
       
 here:
@@ -20,10 +17,8 @@ here:
    
    masterPix = masterPix + 1
    
-   if(masterPix==8) {
-       masterPix = 0
-   }
-   
-   goto here
+   if(masterPix<8) then here
+      
+   goto restart
 
 }
