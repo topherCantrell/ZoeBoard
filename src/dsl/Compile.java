@@ -201,7 +201,8 @@ public class Compile {
 		}		
 	}
 	
-	void parseIF(Function fun, CodeLine c, boolean firstPass) {
+	void parseIF(Function fun, CodeLine c, int index, boolean firstPass) {		
+		
 		int i = c.text.lastIndexOf(")");
 		if(i<0) {
 			throw new CompileException("Expected ')'",c);
@@ -227,9 +228,44 @@ public class Compile {
 		String left = expr.substring(0,opIndex);
 		String right = expr.substring(opIndex+LOGICOPS[op].length());
 		
-		System.out.println("::"+left+"::"+LOGICOPS[op]+"::"+right+"::"+lab);
+		if(firstPass) {
+			c.data.add(0x07);
+			c.data.add(0x00);
+			c.data.add(0x00);
+			parseOperand(fun, c, left);
+			c.data.add(LOGICOPSVAL[op]);
+			parseOperand(fun, c, right);
+		} else {
+			i = findLabel(fun,lab);
+			if(i<0) {
+				throw new CompileException("Label not found",c);
+			}
+			if(index<i) {
+				int ofs = 0;
+				while(index<i) {
+					ofs = ofs + fun.codeLines.get(index).data.size();
+					++index;
+				}
+				if(ofs>32767) {
+					throw new CompileException("Jump out of range",c);
+				}
+				c.data.set(1, (ofs>>8)&0xFF);
+				c.data.set(2, (ofs&0xFF));
+			} else {
+				int ofs = 0;
+				do {
+					ofs = ofs - fun.codeLines.get(index).data.size();
+					index = index - 1;
+				} while(index>i);
+				if(ofs<-32768) {
+					throw new CompileException("Jump out of range",c);
+				}
+				//System.out.println(ofs);
+				c.data.set(1,  (ofs>>8)&0xFF);
+				c.data.set(2, (ofs&0xFF));
+			}
+		}
 		
-		throw new RuntimeException("IMPLEMENT ME");
 	}
 	
 	void compileFunction(Function fun, boolean firstPass) {
@@ -239,7 +275,7 @@ public class Compile {
 				
 			// if(op ? op) then label
 			if(c.text.startsWith("if(")) {
-				parseIF(fun,c,firstPass);
+				parseIF(fun,c,x,firstPass);
 				continue;				
 			}
 			
