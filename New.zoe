@@ -3,6 +3,8 @@ configure(D1,96,true)
 var masterPix
 
 function init() {
+
+    var a
    
 restart:
    
@@ -15,10 +17,27 @@ here:
    setPixel(masterPix,0)
    PAUSE(1000)
    
+   doPulse(5,2)
+   a = __RETVAL__ // expansion of "a=doPulse(5,2)"
+   
    masterPix = masterPix + 1
    
    if(masterPix<8) then here
       
    goto restart
 
+}
+
+function doPulse(pix,color) {
+   var x
+   var y
+   
+   x = 1000
+   setPixel(pix,color)
+   PAUSE(y)
+   setPixel(pix,0)
+   PAUSE(y)
+   
+   pix = 123 // This is a conversion from "return 123"
+   return    // Add this if the function doesn't end with it
 }

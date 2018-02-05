@@ -78,6 +78,11 @@ public class Compile {
 	}
 	
 	void parseOperand(Function fun, CodeLine c, String op) {
+		if(op.equals("__RETVAL__")) {
+			c.data.add(0x82);
+			c.data.add(0x00);
+			return;
+		}
 		try {
 			int v = Integer.parseInt(op);
 			if(v<-16384 || v>16383) {
@@ -88,11 +93,29 @@ public class Compile {
 			c.data.add(v&0xFF);			
 		} catch (Exception e) {
 			int i = prog.findGlobal(op);
-			if(i<0) {
-				throw new CompileException("TODO IMPLEMENT MORE ... STACK VARIABLE",c);
+			
+			if(i>=0) {
+				c.data.add(0x80);
+				c.data.add(i);
+				return;
 			}
-			c.data.add(0x80);
-			c.data.add(i);
+			
+			i = fun.arguments.indexOf(op);
+			if(i>=0) {
+				c.data.add(0x81);
+				c.data.add(i);
+				return;
+			}
+			
+			i = fun.localVars.indexOf(op);
+			if(i>=0) {
+				c.data.add(0x81);
+				c.data.add(i+fun.arguments.size());
+				return;
+			}
+			
+			throw new CompileException("Unknown operand '"+op+"'",c);
+			
 		}
 	}
 	
@@ -207,7 +230,7 @@ public class Compile {
 		if(i<0) {
 			throw new CompileException("Expected ')'",c);
 		}
-		System.out.println(c.text);
+		//System.out.println(c.text);
 		if(!c.text.substring(i+1,i+5).equals("then")) {
 			throw new CompileException("Expected 'then'",c);
 		}
@@ -268,6 +291,45 @@ public class Compile {
 		
 	}
 	
+	void parseCALL(Function fun, CodeLine c, boolean firstPass) {
+		int i = c.text.indexOf("(");
+		String name = c.text.substring(0,i);
+		String params = c.text.substring(i+1,c.text.length()-1);
+		
+		int f = prog.findFunction(name);
+		if(f<0) {
+			throw new CompileException("Unknown function",c);
+		}
+		Function fn = prog.functions.get(f);
+		String [] ps = {};
+		if(!params.isEmpty()) ps = params.split(",");
+		
+		if(ps.length != fn.arguments.size()) {
+			throw new CompileException("Incorrect number of arguments",c);
+		}
+		
+		// 05 PP PP NN ..
+		if(firstPass) {
+			c.data.add(0x05);
+			c.data.add(0x00);
+			c.data.add(0x00);
+			c.data.add(ps.length);
+			for(String p : ps) {
+				parseOperand(fun, c, p);
+			}
+		} else {
+			// TODO Lookup the address
+			// TRICKY HERE. We are looking outside this function.
+		}
+				
+	}
+	
+	void parseRETURN(Function fun, CodeLine c, boolean firstPass) {
+		if(firstPass) {
+			c.data.add(0x06);
+		}
+	}
+	
 	void compileFunction(Function fun, boolean firstPass) {
 		for(int x=0;x<fun.codeLines.size();++x) {
 			CodeLine c = fun.codeLines.get(x);
@@ -308,6 +370,17 @@ public class Compile {
 			
 			if(c.text.startsWith("goto ")) {
 				parseGOTO(fun,c, x, firstPass);
+				continue;
+			}
+			
+			int i = c.text.indexOf("(");
+			if(i>0 && c.text.endsWith(")")) {
+				parseCALL(fun,c,firstPass);
+				continue;
+			}
+			
+			if(c.text.equals("return")) {
+				parseRETURN(fun,c,firstPass);
 				continue;
 			}
 			
