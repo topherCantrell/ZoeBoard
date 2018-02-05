@@ -206,6 +206,14 @@ public class Compile {
 			if(c.isLabel) continue;
 									
 			if(c.text.startsWith("if(")) {
+				/*
+				 * if(expression) {
+				 *   could be nested!
+				 * } else {
+				 *   is optional
+				 *   todo change else-if to standard form
+				 * }
+				 */
 				throw new RuntimeException("IF NOT IMPLEMENTED YET");
 			}
 			

@@ -9,16 +9,20 @@ var masterColor
 
 function init() {
       
-   masterPix = 8
-   masterColor = masterPix/4
-   masterPix = masterPix - 1
+   masterPix = 0
       
 here:
 
-   setPixel(masterPix,masterColor)
+   setPixel(masterPix,2)
    PAUSE(1000)
    setPixel(masterPix,0)
    PAUSE(1000)
+   
+   masterPix = masterPix + 1
+   
+   if(masterPix==8) {
+       masterPix = 0
+   }
    
    goto here
 
