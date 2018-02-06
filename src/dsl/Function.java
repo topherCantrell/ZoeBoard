@@ -10,7 +10,5 @@ public class Function {
 	List<String> localVars;
 
 	public List<CodeLine> codeLines;
-	
-	int address;
 
 }

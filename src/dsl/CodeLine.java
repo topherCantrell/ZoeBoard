@@ -12,6 +12,7 @@ public class CodeLine {
 	public String text;
 	
 	public boolean isLabel;
+	public int address;
 	
 	List<Integer> data = new ArrayList<Integer>();
 	

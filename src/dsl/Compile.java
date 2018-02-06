@@ -29,6 +29,9 @@ public class Compile {
 		
 		this.prog = prog;
 		
+		Preprocessor pre = new Preprocessor(prog);
+		pre.preprocess();
+		
 		// Hoist all the "var" definitions
 		prog.vars = hoistVars(prog.globalLines);
 		//dumpCodeLines("----Global-----",prog.globalLines);
@@ -61,10 +64,10 @@ public class Compile {
 		// Function by function, line by line, pass by pass
 		
 		int address = 0;
-		for(Function fun : prog.functions) {
-			fun.address = address;
+		for(Function fun : prog.functions) {			
 			compileFunction(fun,true);
 			for(CodeLine c : fun.codeLines) {
+				c.address = address;
 				address = address + c.data.size();
 			}
 		}
@@ -167,30 +170,18 @@ public class Compile {
 			if(i<0) {
 				throw new CompileException("Label not found",c);
 			}
-			if(index<i) {
-				int ofs = 0;
-				while(index<i) {
-					ofs = ofs + fun.codeLines.get(index).data.size();
-					++index;
-				}
-				if(ofs>32767) {
-					throw new CompileException("Jump out of range",c);
-				}
-				c.data.set(1, (ofs>>8)&0xFF);
-				c.data.set(2, (ofs&0xFF));
-			} else {
-				int ofs = 0;
-				do {
-					ofs = ofs - fun.codeLines.get(index).data.size();
-					index = index - 1;
-				} while(index>i);
-				if(ofs<-32768) {
-					throw new CompileException("Jump out of range",c);
-				}
-				//System.out.println(ofs);
-				c.data.set(1,  (ofs>>8)&0xFF);
-				c.data.set(2, (ofs&0xFF));
+			
+			int from = c.address+c.data.size();
+			int to = fun.codeLines.get(i).address;
+			
+			int ofs = to - from;		
+			
+			if(ofs>32767 || ofs<-32768) {
+				throw new CompileException("Jump out of range",c);
 			}
+			c.data.set(1, (ofs>>8)&0xFF);
+			c.data.set(2, (ofs&0xFF));	
+									
 		}
 	}
 	
@@ -271,30 +262,18 @@ public class Compile {
 			if(i<0) {
 				throw new CompileException("Label not found",c);
 			}
-			if(index<i) {
-				int ofs = 0;
-				while(index<i) {
-					ofs = ofs + fun.codeLines.get(index).data.size();
-					++index;
-				}
-				if(ofs>32767) {
-					throw new CompileException("Jump out of range",c);
-				}
-				c.data.set(1, (ofs>>8)&0xFF);
-				c.data.set(2, (ofs&0xFF));
-			} else {
-				int ofs = 0;
-				do {
-					ofs = ofs - fun.codeLines.get(index).data.size();
-					index = index - 1;
-				} while(index>i);
-				if(ofs<-32768) {
-					throw new CompileException("Jump out of range",c);
-				}
-				//System.out.println(ofs);
-				c.data.set(1,  (ofs>>8)&0xFF);
-				c.data.set(2, (ofs&0xFF));
+			
+			int from = c.address+c.data.size();
+			int to = fun.codeLines.get(i).address;
+			
+			int ofs = to - from;		
+			
+			if(ofs>32767 || ofs<-32768) {
+				throw new CompileException("Jump out of range",c);
 			}
+			c.data.set(1, (ofs>>8)&0xFF);
+			c.data.set(2, (ofs&0xFF));	
+									
 		}
 		
 	}
@@ -332,7 +311,7 @@ public class Compile {
 			}
 			// i = rel address of the next line
 			// fun.address = rel address of the target function
-			int ofs = fn.address - i;				
+			int ofs = fn.codeLines.get(0).address - i;				
 			if(ofs>32767 || ofs<-32768) {
 				throw new CompileException("Jump out of range",c);
 			}
