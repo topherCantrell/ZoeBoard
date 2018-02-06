@@ -8,16 +8,16 @@ import java.util.List;
 
 public class Program {
 	
-	String configStrip;
-	int configLength;
-	boolean configHasWhite;
+	public String configStrip;
+	public int configLength;
+	public boolean configHasWhite;
 	
-	String fileName;
+	public String fileName;
 	
-	List<String> vars;
+	public List<String> vars;
 	
-	List<CodeLine> globalLines;
-	List<Function> functions;
+	public List<CodeLine> globalLines;
+	public List<Function> functions;
 	
 	public int findFunction(String name) {
 		for(int x=0;x<functions.size();++x) {
@@ -84,10 +84,7 @@ public class Program {
 			}
 			if(s.isEmpty()) continue;
 			
-			CodeLine c = new CodeLine();
-			c.fileName = fileName;
-			c.lineNumber = lineNumber;
-			c.originalText = raw;
+			CodeLine c = new CodeLine(currentFunction,fileName,lineNumber,raw);			
 			
 			s = removeSpaces(s);
 			c.text = s;
@@ -140,8 +137,7 @@ public class Program {
 				if(!s.substring(j+1).equals("{")) {
 					throw new CompileException("Expected '{' after ')'",c);
 				}
-				currentFunction = new Function();
-				currentFunction.name = s.substring(0,i);
+				currentFunction = new Function(ret,s.substring(0,i));
 				int ch = ret.findFunction(currentFunction.name);
 				
 				if(ch>=0) {

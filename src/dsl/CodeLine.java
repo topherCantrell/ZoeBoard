@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CodeLine {
+	
+	public CodeLine(Function function, String fileName, int lineNumber, String text) {
+		this.function = function;
+		this.fileName = fileName;
+		this.lineNumber = lineNumber;
+		this.originalText = text;
+	}
 
 	public String fileName;
 	public int lineNumber;
@@ -14,7 +21,9 @@ public class CodeLine {
 	public boolean isLabel;
 	public int address;
 	
-	List<Integer> data = new ArrayList<Integer>();
+	public Function function;
+	
+	public List<Integer> data = new ArrayList<Integer>();
 	
 	public String toString() {
 		return "File:"+fileName+" Line:"+lineNumber+" '"+originalText+"'";
