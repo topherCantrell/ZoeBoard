@@ -13,7 +13,7 @@ public class ToSpin {
 	public static void toSpin(Program prog) {
 		
 		for(Function fun : prog.functions) {
-			System.out.println("' ## Function "+fun.name);
+			System.out.println("' ## Function "+fun.name+" @ $"+Integer.toString(fun.address,16).toUpperCase());
 			for(CodeLine c : fun.codeLines) {
 				String out = "";
 				if(c.data.size()>0) {

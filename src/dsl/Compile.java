@@ -58,11 +58,19 @@ public class Compile {
 			throw new CompileException("The 'init()' function must take no arguments",null);
 		}
 		
-		// Function by function, line by line
+		// Function by function, line by line, pass by pass
 		
+		int address = 0;
 		for(Function fun : prog.functions) {
+			fun.address = address;
 			compileFunction(fun,true);
-			compileFunction(fun,false);
+			for(CodeLine c : fun.codeLines) {
+				address = address + c.data.size();
+			}
+		}
+		// Complete the first pass on everything so we have the function addresses.
+		for(Function fun : prog.functions) {
+			compileFunction(fun,false);			
 		}
 				
 	}
@@ -291,7 +299,7 @@ public class Compile {
 		
 	}
 	
-	void parseCALL(Function fun, CodeLine c, boolean firstPass) {
+	void parseCALL(Function fun, CodeLine c, int index, boolean firstPass) {
 		int i = c.text.indexOf("(");
 		String name = c.text.substring(0,i);
 		String params = c.text.substring(i+1,c.text.length()-1);
@@ -318,8 +326,18 @@ public class Compile {
 				parseOperand(fun, c, p);
 			}
 		} else {
-			// TODO Lookup the address
-			// TRICKY HERE. We are looking outside this function.
+			i = 0;
+			for(int x=0;x<=index;++x) {
+				i = i + fun.codeLines.get(x).data.size();
+			}
+			// i = rel address of the next line
+			// fun.address = rel address of the target function
+			int ofs = fn.address - i;				
+			if(ofs>32767 || ofs<-32768) {
+				throw new CompileException("Jump out of range",c);
+			}
+			c.data.set(1, (ofs>>8)&0xFF);
+			c.data.set(2, (ofs&0xFF));			
 		}
 				
 	}
@@ -327,6 +345,23 @@ public class Compile {
 	void parseRETURN(Function fun, CodeLine c, boolean firstPass) {
 		if(firstPass) {
 			c.data.add(0x06);
+		}
+	}
+	
+	void parseRESLOCAL(Function fun, CodeLine c, boolean firstPass) {
+		if(firstPass) {			
+			String s = c.text.substring(9);
+			if(!s.endsWith(")")) {
+				throw new CompileException("Expected ')'",c);
+			}
+			s = s.substring(0, s.length()-1);
+			try {
+				int num = Integer.parseInt(s);
+				c.data.add(0x06);
+				c.data.add(num);
+			} catch(Exception e) {
+				throw new CompileException("Invalid number",c);
+			}			
 		}
 	}
 	
@@ -373,9 +408,14 @@ public class Compile {
 				continue;
 			}
 			
+			if(c.text.startsWith("reslocal(")) {
+				parseRESLOCAL(fun,c,firstPass);
+				continue;
+			}
+			
 			int i = c.text.indexOf("(");
 			if(i>0 && c.text.endsWith(")")) {
-				parseCALL(fun,c,firstPass);
+				parseCALL(fun,c,x,firstPass);
 				continue;
 			}
 			
@@ -467,8 +507,6 @@ public class Compile {
 			System.out.println(e.code);
 			e.printStackTrace();
 		}
-		
-		
 
 	}
 

@@ -3,8 +3,9 @@ configure(D1,96,true)
 var masterPix
 
 function init() {
-
-    var a
+    reslocal(1)
+    
+    var a    
    
 restart:
    
@@ -29,8 +30,9 @@ here:
 }
 
 function doPulse(pix,color) {
+   reslocal(2)
    var x
-   var y
+   var y   
    
    x = 1000
    setPixel(pix,color)
