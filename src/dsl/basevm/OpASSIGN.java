@@ -4,20 +4,15 @@ import dsl.CodeLine;
 
 public class OpASSIGN {
 	
-	public static void parse(CodeLine c, boolean firstPass) {
-		int i = c.text.indexOf('=');
+	public static final int OPCODE = 0x01;
+	
+	public static void parse(CodeLine c, boolean firstPass) {		
 		if(firstPass) {
-			c.data.add(0x01);
-			c.data.add(0x00); // Place holder
-			c.data.add(0x00); // Place holder
-			c.data.add(0x00); // Place holder
-			c.data.add(0x00); // Place holder
-		} else {
-			c.data.clear();
-			c.data.add(0x01);
+			int i = c.text.indexOf('=');
+			c.data.add(OPCODE);
 			Operand.parseOperand(c,c.text.substring(i+1));
 			Operand.parseOperand(c,c.text.substring(0, i));			
-		}		
+		} 	
 	}
 
 }

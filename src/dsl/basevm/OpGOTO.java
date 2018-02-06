@@ -5,9 +5,11 @@ import dsl.CompileException;
 
 public class OpGOTO {
 	
+	public static final int OPCODE = 0x03;
+	
 	public static void parse(CodeLine c, boolean firstPass) {
 		if(firstPass) {
-			c.data.add(0x03);
+			c.data.add(OPCODE);
 			c.data.add(0x00); // Place holder
 			c.data.add(0x00); // Place holder
 		} else {

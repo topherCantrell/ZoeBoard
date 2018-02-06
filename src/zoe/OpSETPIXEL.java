@@ -6,6 +6,8 @@ import dsl.basevm.Operand;
 
 public class OpSETPIXEL {
 	
+	public static final int OPCODE = 0x0B;
+	
 	public static void parse(CodeLine c, boolean firstPass) {
 		if(firstPass) {
 			String t = c.text.substring(9);
@@ -17,7 +19,7 @@ public class OpSETPIXEL {
 			if(ops.length!=2) {
 				throw new CompileException("Expected 2 operands (pixelNumber and color)",c);
 			}
-			c.data.add(0x0B);
+			c.data.add(OPCODE);
 			Operand.parseOperand(c,ops[0]);
 			Operand.parseOperand(c,ops[1]);
 		}

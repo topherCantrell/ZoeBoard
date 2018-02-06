@@ -6,6 +6,8 @@ import dsl.Function;
 
 public class OpCALL {
 	
+	public static final int OPCODE = 0x05;
+	
 	public static void parse(CodeLine c, boolean firstPass) {
 		int i = c.text.indexOf("(");
 		String name = c.text.substring(0,i);
@@ -25,7 +27,7 @@ public class OpCALL {
 		
 		// 05 PP PP NN ..
 		if(firstPass) {
-			c.data.add(0x05);
+			c.data.add(OPCODE);
 			c.data.add(0x00);
 			c.data.add(0x00);
 			c.data.add(ps.length);

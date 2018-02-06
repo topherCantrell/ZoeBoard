@@ -5,6 +5,8 @@ import dsl.CompileException;
 
 public class OpIF {
 	
+	public static final int OPCODE = 0x07;
+	
 	public static void parse(CodeLine c, boolean firstPass) {
 		int i = c.text.lastIndexOf(")");
 		if(i<0) {
@@ -32,7 +34,7 @@ public class OpIF {
 		String right = expr.substring(opIndex+OpMATH.LOGICOPS[op].length());
 		
 		if(firstPass) {
-			c.data.add(0x07);
+			c.data.add(OPCODE);
 			c.data.add(0x00);
 			c.data.add(0x00);
 			Operand.parseOperand(c, left);
