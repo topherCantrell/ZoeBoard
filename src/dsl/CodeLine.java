@@ -10,6 +10,7 @@ public class CodeLine {
 		this.fileName = fileName;
 		this.lineNumber = lineNumber;
 		this.originalText = text;
+		this.text = text;
 	}
 
 	public String fileName;

@@ -3,7 +3,6 @@ configure(D1,96,true)
 var masterPix
 
 function init() {
-    reslocal(1)
     
     var a    
    
@@ -18,9 +17,8 @@ here:
    setPixel(masterPix,0)
    PAUSE(1000)
    
-   doPulse(5,2)
-   a = __RETVAL__ // expansion of "a=doPulse(5,2)"
-   
+   a = doPulse(5,2)
+     
    masterPix = masterPix + 1
    
    if(masterPix<8) then here
@@ -30,7 +28,6 @@ here:
 }
 
 function doPulse(pix,color) {
-   reslocal(2)
    var x
    var y   
    
@@ -40,6 +37,6 @@ function doPulse(pix,color) {
    setPixel(pix,0)
    PAUSE(y)
    
-   pix = 123 // This is a conversion from "return 123"
-   return    // Add this if the function doesn't end with it
+   return 123
+   
 }

@@ -6,7 +6,6 @@ import java.util.List;
 import dsl.CodeLine;
 import dsl.CompileException;
 import dsl.Function;
-import dsl.Preprocessor;
 import dsl.Program;
 import dsl.ToSpin;
 import dsl.basevm.OpASSIGN;
@@ -16,6 +15,7 @@ import dsl.basevm.OpIF;
 import dsl.basevm.OpMATH;
 import dsl.basevm.OpRESLOCAL;
 import dsl.basevm.OpRETURN;
+import dsl.basevm.Preprocessor;
 
 public class Compile {
 	
@@ -35,9 +35,6 @@ public class Compile {
 	public void doCompile(Program prog) {
 		
 		this.prog = prog;
-		
-		Preprocessor pre = new Preprocessor(prog);
-		pre.preprocess();
 		
 		// Hoist all the "var" definitions
 		prog.vars = hoistVars(prog.globalLines);
@@ -67,6 +64,9 @@ public class Compile {
 		if(init.arguments.size()!=0) {
 			throw new CompileException("The 'init()' function must take no arguments",null);
 		}
+		
+		Preprocessor pre = new Preprocessor(prog);
+		pre.preprocess();
 		
 		// Function by function, line by line, pass by pass
 		

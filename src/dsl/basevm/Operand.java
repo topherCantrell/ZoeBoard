@@ -11,6 +11,11 @@ public class Operand {
 			c.data.add(0x00);
 			return;
 		}
+		if(op.equals("__return__")) {
+			c.data.add(0x81);
+			c.data.add(0x00);
+			return;
+		}
 		try {
 			int v = Integer.parseInt(op);
 			if(v<-16384 || v>16383) {
