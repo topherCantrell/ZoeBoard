@@ -356,7 +356,7 @@ comRESLOCAL
 '  - Pop the frame pointer
                                    
 comCALL
-' OPCODE 05 PP PP NN ..
+' OPCODE 05 NN .. PP PP
               
         wrword  framePointer,stackPointer     ' Save the ...
         add     stackPointer,#2               ' ... frame pointer

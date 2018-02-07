@@ -1,7 +1,6 @@
 package dsl.basevm;
 
 import dsl.CodeLine;
-import dsl.CompileException;
 import dsl.Function;
 import dsl.Program;
 
@@ -34,10 +33,7 @@ public class Preprocessor {
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {
 				CodeLine c = fun.codeLines.get(x);
-				if(c.text.startsWith("return ")) {
-					if(fun.localVars.size()==0) {
-						throw new CompileException("Function does not return a value",c);
-					}
+				if(c.text.startsWith("return ")) {					
 					c.text = "__return__="+c.text.substring(7);
 					fun.codeLines.add(x+1,new CodeLine(fun,"",0,"return"));
 				}
@@ -54,8 +50,7 @@ public class Preprocessor {
 					int i = c.text.indexOf("=");
 					String v = c.text.substring(0,i);
 					c.text = c.text.substring(i+1);
-					fun.codeLines.add(x+1,new CodeLine(fun,"",0,v+"=__RETVAL__"));
-					System.out.println("##"+c.text+"##");
+					fun.codeLines.add(x+1,new CodeLine(fun,"",0,v+"=__RETVAL__"));					
 				}
 			}
 		}		

@@ -28,12 +28,12 @@ public class OpCALL {
 		// 05 PP PP NN ..
 		if(firstPass) {
 			c.data.add(OPCODE);
-			c.data.add(0x00);
-			c.data.add(0x00);
-			c.data.add(ps.length);
+			c.data.add(ps.length);				
 			for(String p : ps) {
 				Operand.parseOperand(c, p);
 			}
+			c.data.add(0x00);
+			c.data.add(0x00);		
 		} else {
 			int index = c.function.codeLines.indexOf(c);
 			i = 0;
@@ -46,8 +46,9 @@ public class OpCALL {
 			if(ofs>32767 || ofs<-32768) {
 				throw new CompileException("Jump out of range",c);
 			}
-			c.data.set(1, (ofs>>8)&0xFF);
-			c.data.set(2, (ofs&0xFF));			
+			int p = ps.length*2+2;
+			c.data.set(p, (ofs>>8)&0xFF);
+			c.data.set(p+1, (ofs&0xFF));			
 		}
 	}
 

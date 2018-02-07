@@ -3,40 +3,31 @@ configure(D1,96,true)
 var masterPix
 
 function init() {
-    
-    var a    
-   
-restart:
-   
-   masterPix = 0
-      
+
+  masterPix = 5
+       
 here:
 
-   setPixel(masterPix,2)
-   PAUSE(1000)
-   setPixel(masterPix,0)
-   PAUSE(1000)
-   
-   a = doPulse(5,2)
-     
-   masterPix = masterPix + 1
-   
-   if(masterPix<8) then here
-      
-   goto restart
+  var a = doStuff(3,2)
+  setPixel(a,2)
+  PAUSE(1000)
+  setPixel(a,0)
+  PAUSE(1000)
+
+  goto here
 
 }
 
-function doPulse(pix,color) {
-   var x
-   var y   
-   
-   x = 1000
-   setPixel(pix,color)
-   PAUSE(y)
-   setPixel(pix,0)
-   PAUSE(y)
-   
-   return 123
-   
+function doStuff(of1,of2) {
+
+    masterPix = masterPix + of1
+    masterPix = masterPix - of2
+    if(masterPix<8) then out
+    masterPix = 0    
+out:
+    return masterPix
+
 }
+
+
+

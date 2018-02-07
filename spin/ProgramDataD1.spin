@@ -51,16 +51,51 @@ zoeProgram
   byte 0
 
 
+
+
+
+
+
 ' ## Function init
-    byte $01,$00,$08,$80,$01    '    masterPix = 8
-    byte $02,$80,$01,$00,$04,$01,$80,$00'    masterColor = masterPix/4
-    byte $02,$80,$01,$00,$01,$21,$80,$01'    masterPix = masterPix - 1
+    byte $04,$01                ' reslocal(1)
+    byte $01,$00,$00,$80,$00    '   masterPix = 0
 ' here:
-    byte $0B,$80,$01,$80,$00    '    setPixel(masterPix,masterColor)
-    byte $08,$03,$E8            '    PAUSE(1000)
-    byte $0B,$80,$01,$00,$00    '    setPixel(masterPix,0)
-    byte $08,$03,$E8            '    PAUSE(1000)
-    byte $03,$FF,$ED            '    goto here
+    byte $05,$01,$00,$01,$00,$19'   var a = doStuff(2)
+    byte $01,$82,$00,$81,$00    ' a=__RETVAL__
+    byte $0B,$81,$00,$00,$02    '   setPixel(a,2)
+    byte $08,$03,$E8            '   PAUSE(1000)
+    byte $0B,$81,$00,$00,$00    '   setPixel(a,0)
+    byte $08,$03,$E8            '   PAUSE(1000)
+    byte $03,$FF,$E2            '   goto here
+    byte $06                    ' return
+
+' ## Function doStuff
+    byte $02,$80,$00,$81,$00,$20,$80,$00'     masterPix = masterPix + ofs
+    byte $07,$00,$05,$80,$00,$0C,$00,$08'     if(masterPix<8) then out
+    byte $01,$00,$00,$80,$00    '     masterPix = 0    
+' out:
+    byte $01,$80,$00,$81,$00    '     return masterPix
+    byte $06                    ' return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
