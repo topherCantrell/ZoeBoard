@@ -1,6 +1,9 @@
 package dsl.basevm;
 
+import java.util.List;
+
 import dsl.CodeLine;
+import dsl.CompileException;
 import dsl.Function;
 import dsl.Program;
 
@@ -46,6 +49,7 @@ public class Preprocessor {
 			for(int x=0;x<fun.codeLines.size();++x) {				
 				CodeLine c = fun.codeLines.get(x);
 				if(c.text.startsWith("if(")) continue;
+				if(c.text.startsWith("}elseif(")) continue;
 				if(c.text.contains("=") && c.text.contains("(")) {
 					int i = c.text.indexOf("=");
 					String v = c.text.substring(0,i);
@@ -56,7 +60,102 @@ public class Preprocessor {
 		}		
 	}
 	
+	int findCloseBrace(Function fun,int index, boolean multi) {
+		int level = 1;
+		List<CodeLine> lines = fun.codeLines;
+		while(true) {
+			++index;
+			if(index>=lines.size()) {
+				throw new CompileException("Expected closing brace",lines.get(index));
+			}
+			CodeLine n = lines.get(index);			
+			
+			if(level==1 && n.text.equals("}else{")) {
+				if(multi) {
+					++level;
+				}
+			} else {
+				if(n.text.contains("{")) {				
+					++level;
+				}
+			}
+			
+			if(n.text.contains("}")) {
+				--level;
+				if(level==0) {
+					return index;
+				}
+			}			
+		}		
+	}
+	
+	
+	void fixELSEIFs() {			
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);
+				if(c.text.startsWith("}elseif(")) {
+					int i = findCloseBrace(fun,x,true);
+					// Add a "}" after the last "elseif" or "else" line 
+					// The trick here is finding the "end"
+					fun.codeLines.add(i+1,new CodeLine(fun,"",0,"}"));
+					// Move the "if(..." to the next line
+					fun.codeLines.add(x+1,new CodeLine(fun,"",0,c.text.substring(5)));				
+					// Change the current line to "}else{"					
+					c.text = "}else{";					
+				}
+			}
+		}		
+	}
+	
+	void fixIFs() {		
+		int constructNumber = 0;
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);
+				if(c.text.startsWith("if(")) {
+					++constructNumber;
+					int endOfAll = findCloseBrace(fun,x,true);
+					int endOfIf = findCloseBrace(fun,x,false);
+					
+					// change c to //if(...)elseif1_1
+					if(!c.text.endsWith("{")) {
+						throw new CompileException("Expected '{'",c);
+					}
+					c.text = c.text.substring(0,c.text.length()-1)+"else__ff"+constructNumber+"_1";
+										
+					// change endOfIf to "if1_1:"
+					CodeLine ceoi = fun.codeLines.get(endOfIf);
+					ceoi.isLabel = true;
+					ceoi.text = "__ff"+constructNumber+"_1";
+					
+					// change endOfAll to "if1_2:"
+					CodeLine ecoa = fun.codeLines.get(endOfAll);
+					ecoa.isLabel = true;
+					
+					
+					// if has else ... add a "goto if1_2" BEFORE endOfIf
+					if(endOfAll!=endOfIf) {						
+						fun.codeLines.add(endOfIf,new CodeLine(fun,"",0,"goto __ff"+constructNumber+"_2"));
+					}										
+				}
+			}
+		}
+	}
+	
+	public void dumpLines() {
+		for(Function f : prog.functions) {
+			System.out.println("##"+f.name+"##");
+			for(CodeLine c : f.codeLines) {
+				System.out.println(c.text);
+			}
+		}
+	}
+	
 	public void preprocess() {
+		
+		// Convert ELSE-IF to nested IF
+		fixELSEIFs();
 		
 		// Reserve space for locals in all functions
 		addRESLOCALs();
@@ -70,9 +169,12 @@ public class Preprocessor {
 		// Change "a = function()" to "function();a=__RETVAL__"
 		fixSTORERETURNs();
 		
-		// TODO
-		// Convert ELSE-IF to nested IF
-		// Convert IF/ELSE to pure IF-THEN		
+		// Convert IF/ELSE to pure IF-THEN	
+		fixIFs();		
+				
+		dumpLines();
+		
+		// TODO				
 		// Convert DO and WHILE to pure IF (complex logic expressions)
 		
 		// Maybe one day:

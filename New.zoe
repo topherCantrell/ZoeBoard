@@ -4,30 +4,23 @@ var masterPix
 
 function init() {
 
+  var mode = 1
+  
   masterPix = 5
+  
+  if(mode==1) {
+    setPixel(1,2)    
+  } else {
+    if(mode==2) {
+      setPixel(2,2)
+    }    
+  } 
+  
+  PAUSE(5000)  
        
-here:
-
-  var a = doStuff(3,2)
-  setPixel(a,2)
-  PAUSE(1000)
-  setPixel(a,0)
-  PAUSE(1000)
-
-  goto here
 
 }
 
-function doStuff(of1,of2) {
-
-    masterPix = masterPix + of1
-    masterPix = masterPix - of2
-    if(masterPix<8) then out
-    masterPix = 0    
-out:
-    return masterPix
-
-}
 
 
 

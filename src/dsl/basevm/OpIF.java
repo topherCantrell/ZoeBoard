@@ -7,38 +7,49 @@ public class OpIF {
 	
 	public static final int OPCODE = 0x07;
 	
+	// Longer matches defined first giving match-precedence for things like ">=" over ">"
+	public static String [] LOGICOPS = {"==", "!=", ">=", "<=", ">",  "<"};	
+	private static int [] LOGICOPSVAL = {0x0A, 0x05, 0x03, 0x0E, 0x01, 0x0C};
+	public static int [] LOGICREV =     { 1,   0,   5,     4,    3,    2};
+	
 	public static void parse(CodeLine c, boolean firstPass) {
 		int i = c.text.lastIndexOf(")");
 		if(i<0) {
 			throw new CompileException("Expected ')'",c);
 		}
-		//System.out.println(c.text);
-		if(!c.text.substring(i+1,i+5).equals("then")) {
+		boolean elseThen=false;
+		if(c.text.substring(i+1,i+5).equals("else")) {
+			elseThen = true;
+		} else if(!c.text.substring(i+1,i+5).equals("then")) {
 			throw new CompileException("Expected 'then'",c);
 		}
 		String lab = c.text.substring(i+5);
 		String expr = c.text.substring(3,i);
 		int op = -1;
 		int opIndex = -1;
-		for(int x=0;x<OpMATH.LOGICOPS.length;++x) {
-			opIndex = expr.indexOf(OpMATH.LOGICOPS[x]);
+		for(int x=0;x<OpIF.LOGICOPS.length;++x) {
+			opIndex = expr.indexOf(OpIF.LOGICOPS[x]);
 			if(opIndex>=0) {
 				op = x;
+				if(elseThen) {
+					op = LOGICREV[op];
+				} 
 				break;
 			}
 		}		
 		if(op<0) {
 			throw new CompileException("Unknown operation",c);
 		}
+
 		String left = expr.substring(0,opIndex);
-		String right = expr.substring(opIndex+OpMATH.LOGICOPS[op].length());
+		String right = expr.substring(opIndex+OpIF.LOGICOPS[op].length());
 		
 		if(firstPass) {
 			c.data.add(OPCODE);
 			c.data.add(0x00);
 			c.data.add(0x00);
 			Operand.parseOperand(c, left);
-			c.data.add(OpMATH.LOGICOPSVAL[op]);
+			c.data.add(OpIF.LOGICOPSVAL[op]);
 			Operand.parseOperand(c, right);
 		} else {
 			i = c.function.findLabel(lab);
