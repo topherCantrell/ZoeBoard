@@ -113,7 +113,7 @@ public class Preprocessor {
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
 				CodeLine c = fun.codeLines.get(x);
-				if(c.text.startsWith("if(")) {
+				if(c.text.startsWith("if(") && c.text.contains("{")) {
 					++constructNumber;
 					int endOfAll = findCloseBrace(fun,x,true);
 					int endOfIf = findCloseBrace(fun,x,false);
@@ -122,21 +122,25 @@ public class Preprocessor {
 					if(!c.text.endsWith("{")) {
 						throw new CompileException("Expected '{'",c);
 					}
-					c.text = c.text.substring(0,c.text.length()-1)+"else__ff"+constructNumber+"_1";
+					if(endOfAll == endOfIf) {
+						c.text = c.text.substring(0,c.text.length()-1)+"else__ff"+constructNumber+"_END";
+					} else {
+						c.text = c.text.substring(0,c.text.length()-1)+"else__ff"+constructNumber+"_ELSE";
+					}
 										
 					// change endOfIf to "if1_1:"
 					CodeLine ceoi = fun.codeLines.get(endOfIf);
 					ceoi.isLabel = true;
-					ceoi.text = "__ff"+constructNumber+"_1";
+					ceoi.text = "__ff"+constructNumber+"_ELSE";
 					
 					// change endOfAll to "if1_2:"
 					CodeLine ecoa = fun.codeLines.get(endOfAll);
 					ecoa.isLabel = true;
-					
+					ecoa.text="__ff"+constructNumber+"_END";					
 					
 					// if has else ... add a "goto if1_2" BEFORE endOfIf
 					if(endOfAll!=endOfIf) {						
-						fun.codeLines.add(endOfIf,new CodeLine(fun,"",0,"goto __ff"+constructNumber+"_2"));
+						fun.codeLines.add(endOfIf,new CodeLine(fun,"",0,"goto __ff"+constructNumber+"_END"));
 					}										
 				}
 			}

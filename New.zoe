@@ -10,17 +10,43 @@ function init() {
   
   if(mode==1) {
     setPixel(1,2)    
+  } else if(mode==2) {
+    setPixel(2,2)
+    if(masterPix==2) {
+       setPixel(3,3)
+    } else if(masterPix==3) {
+       setPixel(4,4)
+    }
+  } else if(mode==3) {
+    setPixel(3,2)
   } else {
-    if(mode==2) {
-      setPixel(2,2)
-    }    
-  } 
+    setPixel(4,2)
+  }
   
   PAUSE(5000)  
        
+here:
+
+  var a = doStuff(3,2)
+  setPixel(a,2)
+  PAUSE(1000)
+  setPixel(a,0)
+  PAUSE(1000)
+
+  goto here
 
 }
 
+function doStuff(of1,of2) {
+
+    masterPix = masterPix + of1
+    masterPix = masterPix - of2
+    if(masterPix<8) then out
+    masterPix = 0    
+out:
+    return masterPix
+
+}
 
 
 

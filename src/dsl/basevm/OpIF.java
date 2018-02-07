@@ -27,9 +27,11 @@ public class OpIF {
 		String expr = c.text.substring(3,i);
 		int op = -1;
 		int opIndex = -1;
+		int orgOp = -1;
 		for(int x=0;x<OpIF.LOGICOPS.length;++x) {
 			opIndex = expr.indexOf(OpIF.LOGICOPS[x]);
 			if(opIndex>=0) {
+				orgOp = x;
 				op = x;
 				if(elseThen) {
 					op = LOGICREV[op];
@@ -42,7 +44,7 @@ public class OpIF {
 		}
 
 		String left = expr.substring(0,opIndex);
-		String right = expr.substring(opIndex+OpIF.LOGICOPS[op].length());
+		String right = expr.substring(opIndex+OpIF.LOGICOPS[orgOp].length());
 		
 		if(firstPass) {
 			c.data.add(OPCODE);
