@@ -147,6 +147,48 @@ public class Preprocessor {
 		}
 	}
 	
+	public void fixDOs() {
+		
+		int constructNumber = 0;
+		
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);				
+				if(c.text.startsWith("do{")) {
+					
+					int i = findCloseBrace(fun,x,false);
+					
+					CodeLine wh = fun.codeLines.get(i);
+					if(!wh.text.startsWith("}while(")) {
+						throw new CompileException("Expected 'while'",wh);
+					}
+					
+					++constructNumber;
+					
+					// __do?_START:                  - before c
+					// __do?_CONTINUE:               - in place of c
+					// if(...) then __do1_CONTINUE   - in place of wh
+					// __do1_BREAK:                  - after wh
+					
+					c.isLabel = true;
+					c.text = "__do"+constructNumber+"_CONTINUE";
+					
+					wh.text = "if"+wh.text.substring(6)+"then__do"+constructNumber+"_CONTINUE";
+					
+					CodeLine brk = new CodeLine(fun,"",0,"__do"+constructNumber+"_BREAK");
+					brk.isLabel = true;
+					fun.codeLines.add(i+1,brk);
+					
+					CodeLine startLab = new CodeLine(fun,"",0,"__do"+constructNumber+"_START");
+					startLab.isLabel = true;
+					fun.codeLines.add(x,startLab);					
+															
+				}				
+			}
+		}		
+		
+	}
+	
 	public void dumpLines() {
 		for(Function f : prog.functions) {
 			System.out.println("##"+f.name+"##");
@@ -157,6 +199,11 @@ public class Preprocessor {
 	}
 	
 	public void preprocess() {
+		
+		// Convert DO loops to pure IF-THEN-GOTO
+		fixDOs();
+		
+		// TODO all breaks and continues at once after loops
 		
 		// Convert ELSE-IF to nested IF
 		fixELSEIFs();
@@ -174,7 +221,7 @@ public class Preprocessor {
 		fixSTORERETURNs();
 		
 		// Convert IF/ELSE to pure IF-THEN	
-		fixIFs();		
+		fixIFs();			
 				
 		dumpLines();
 		

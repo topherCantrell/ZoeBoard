@@ -4,99 +4,21 @@ var masterPix
 
 function init() {
 
-  var mode = 1
-  
-  masterPix = 5
-  
-  if(mode==1) {
-    setPixel(1,2)    
-  } else if(mode==2) {
-    setPixel(2,2)
-    if(masterPix==2) {
-       setPixel(3,3)
-    } else if(masterPix==3) {
-       setPixel(4,4)
-    }
-  } else if(mode==3) {
-    setPixel(3,2)
-  } else {
-    setPixel(4,2)
-  }
-  
-  PAUSE(5000)  
-       
 here:
 
-  var a = doStuff(3,2)
-  setPixel(a,2)
-  PAUSE(1000)
-  setPixel(a,0)
-  PAUSE(1000)
-
-  goto here
-
-}
-
-function doStuff(of1,of2) {
-
-    masterPix = masterPix + of1
-    masterPix = masterPix - of2
-    if(masterPix<8) then out
-    masterPix = 0    
-out:
-    return masterPix
-
-}
-
-function loopCheck() {
-
-  var a = 0
-  
-                     // __do1_START: // Helps find continue/break
-  do {               // __do1_CONTINUE:
-  
-      setPixel(a,0)  
-      break          // goto __do1_BREAK
-      continue       // goto __do1_CONTINUE
-      
-                     // __do1_CHECK
-  } while(a<8)       // if(a<8) then __do1_CONTINUE
-                     // __do1_BREAK:
-                     
-                     
-                       // __do2_START:
-                       // goto __do2_CONTINUE
-   while(a<8) {        // __do2_TOP:
-                       
-       setPixel(a,0)
-       break           // goto __do2_BREAK
-       continue        // goto __do2_CONTINUE
-                       
-                       // __do2_CONTINUE:                                                     
-   }                   // if(a<8) then __do2_TOP
-                       // __do2_BREAK:
+    var a = 0
    
-                             // __do3_START
-   for(var a=0;a<8;a=a+1) {  // var a=0
-                             // goto__do3_CHECK
-                             // __do3_TOP:                     
-       setPixel(a,0)
-       break                 // goto __do3_BREAK
-       continue              // goto __do3_CONTINUE
-                             // __do3_CONTINUE:
-                             // a=a+1                           
-                             // __do3_CHECK:
-   }                         // if(a<8) then do3_TOP
-                             // __do3_BREAK
-
-  // continue LAB:
-  // look up to find the __doLAB_TOP (or next _TOP if no LAB)
-  // look down to find the __doLAB_CONTINUE (or next __CONTINUE if no LAB)
-  
-  // break LAB:
-  // look down to find the __doLAB_BREAK (or next __BREAK if no LAB)
+    do {
+    
+        setPixel(a,2)
+        PAUSE(1000)
+        setPixel(a,0)
+        PAUSE(1000)
+        
+        a = a + 1
+    
+    } while(a<8)
+    
+    goto here 
 
 }
-
-
-
