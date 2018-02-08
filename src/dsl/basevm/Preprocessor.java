@@ -236,6 +236,75 @@ public class Preprocessor {
 						
 	}
 	
+	void fixFORs() {
+		
+		int constructNumber = 0;
+		
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);				
+				if(c.text.startsWith("for(")) {
+					
+					int i = findCloseBrace(fun,x,false);
+					CodeLine wh = fun.codeLines.get(i);
+					
+					String [] frags = c.text.substring(4,c.text.length()-2).split(";");
+					// TODO we can hoist "var" in the init here
+					if(frags.length!=3) {
+						throw new CompileException("Expected '(a;b;c)'",c);
+					}
+					
+					++constructNumber;
+					
+					// replace wh with __do?_BREAK
+					// push if(EXPR)thendo?_TOP at wh
+					// push __do?_CHECK: at wh
+					// push UPDATER at wh
+					// push __do?_CONTINUE: at wh					
+					// replace c with __do?_TOP:
+					// push goto __do?_CHECK at c
+					// push INITIALIZER at c
+					// push __do?_START at c
+					
+					wh.text = "__do"+constructNumber+"_BREAK";
+					wh.isLabel = true;
+					
+					CodeLine exp = new CodeLine(fun,"",0,"if("+frags[1]+")then__do"+constructNumber+"_TOP");
+					fun.codeLines.add(i,exp);
+					
+					CodeLine chk = new CodeLine(fun,"",0,"__do"+constructNumber+"_CHECK");
+					chk.isLabel = true;
+					fun.codeLines.add(i,chk);
+					
+					if(!frags[2].isEmpty()) {
+						fun.codeLines.add(i,new CodeLine(fun,"",0,frags[2]));
+					}
+					
+					CodeLine cont = new CodeLine(fun,"",0,"__do"+constructNumber+"_CONTINUE");
+					cont.isLabel = true;
+					fun.codeLines.add(i,cont);
+					
+					//
+					
+					c.text = "__do"+constructNumber+"_TOP";
+					c.isLabel = true;
+					
+					fun.codeLines.add(x,new CodeLine(fun,"",0,"goto __do"+constructNumber+"_CHECK"));
+					
+					if(!frags[0].isEmpty()) {
+						fun.codeLines.add(x,new CodeLine(fun,"",0,frags[0]));
+					}
+					
+					CodeLine start = new CodeLine(fun,"",0,"__do"+constructNumber+"_START");
+					start.isLabel = true;
+					fun.codeLines.add(x,start);
+					
+				}
+			}
+		}
+		
+	}
+	
 	void commonBreakContinue(String target, String which, CodeLine c, int index) {
 		
 		// If target is given:
@@ -324,7 +393,7 @@ public class Preprocessor {
 		// Convert DO loops to pure IF-THEN-GOTO
 		fixDOs();
 		fixWHILEs();
-		//fixFORs(); // TODO
+		fixFORs();
 		fixBREAKs();
 		fixCONTINUEs();		
 		

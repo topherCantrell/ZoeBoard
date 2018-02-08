@@ -80,25 +80,20 @@ function loopCheck() {
 // ------------------------
 
    
-                             // __do3_START
-   for(var a=0;a<8;a=a+1) {  // var a=0
+   for(var a=0;a<8;a=a+1) {  // __do3_START
+                             // var a=0
                              // goto__do3_CHECK
                              // __do3_TOP:                     
        setPixel(a,0)
        break                 // goto __do3_BREAK
        continue              // goto __do3_CONTINUE
-                             // __do3_CONTINUE:
+       
+   }                         // __do3_CONTINUE:
                              // a=a+1                           
                              // __do3_CHECK:
-   }                         // if(a<8) then do3_TOP
+                             // if(a<8) then do3_TOP
                              // __do3_BREAK
-
-  // continue LAB:
-  // look up to find the __doLAB_TOP (or next _TOP if no LAB)
-  // look down to find the __doLAB_CONTINUE (or next __CONTINUE if no LAB)
-  
-  // break LAB:
-  // look down to find the __doLAB_BREAK (or next __BREAK if no LAB)
+                             
 
 }
 
