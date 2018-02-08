@@ -263,7 +263,6 @@ public class Preprocessor {
 				++index;
 				CodeLine sk = c.function.codeLines.get(index);
 				if(sk.isLabel && sk.text.endsWith("_START")) {
-					dumpLines();
 					String t = sk.text.substring(0,sk.text.length()-5);
 					while(true) {
 						++index;

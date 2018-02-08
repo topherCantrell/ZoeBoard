@@ -6,7 +6,7 @@ function init() {
 
     var a = 0
  
-here:  
+while(true) {
     while(a<8) {
     
         setPixel(a,2)
@@ -26,6 +26,6 @@ here:
                     
     }
     
-    goto here 
+}
 
 }
