@@ -1,6 +1,8 @@
 package zoe;
 
 import dsl.CodeLine;
+import dsl.CompileException;
+import dsl.basevm.Operand;
 
 public class OpDEFCOLOR {
 	
@@ -10,36 +12,35 @@ public class OpDEFCOLOR {
 		if(firstPass) {
 			c.data.add(OPCODE);
 			
-			throw new RuntimeException("IMPLEMENT ME");
+			boolean hasWhite = c.function.prog.configHasWhite;
 			
-			/*
-			 if(commandNospace.startsWith("DEFINECOLOR(")) {
-					line.data = new ArrayList<Integer>();
-					String col = getParam(params,"COLOR",true);
-					String w = getParam(params,"W",hasWhite);
-					if(w==null) w="0";
-					String r = getParam(params,"R",true);
-					String g = getParam(params,"G",true);
-					String b = getParam(params,"B",true);
-					line.data.add(0x09);event.codeLength+=1;					
-					addParam(line.data,col);event.codeLength+=2;
-					
-					if(hasWhite) {
-						addParam(line.data,g);event.codeLength+=2;
-						addParam(line.data,r);event.codeLength+=2;
-						addParam(line.data,b);event.codeLength+=2;
-						addParam(line.data,w);event.codeLength+=2;
-					} else {
-						addParam(line.data,w);event.codeLength+=2;
-						addParam(line.data,g);event.codeLength+=2;
-						addParam(line.data,r);event.codeLength+=2;
-						addParam(line.data,b);event.codeLength+=2;
-					}
-					
-										
-					continue;
+			String t = c.text.substring(9);
+			if(!t.endsWith(")")) {
+				throw new CompileException("Expected closing ')'",c);
+			}
+			t = t.substring(0, t.length()-1);
+			String [] ops = t.split(",");
+			if(hasWhite) {
+				if(ops.length!=4) {
+					throw new CompileException("Expected 4 operands (colorNumber, red, green, blue)",c);
 				}
-			 */
+			} else {
+				if(ops.length!=5) {
+					throw new CompileException("Expected 5 operands (colorNumber, red, green, blue, white)",c);
+				}
+			}
+			c.data.add(OPCODE);
+			Operand.parseOperand(c,ops[0]);
+			Operand.parseOperand(c,ops[1]);
+			Operand.parseOperand(c,ops[2]);
+			Operand.parseOperand(c,ops[3]);
+			if(ops.length>4) {
+				Operand.parseOperand(c, ops[4]);
+			} else {
+				c.data.add(0);
+				c.data.add(0);
+			}			
+			
 		}
 	}
 

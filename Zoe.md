@@ -77,7 +77,7 @@ tttt:
 O7 PP PP OP NN OP       ; IF(OP logic OP) then PPPP -- logic NN: 
                         ; 0A=equals, 05=notEquals, 01=greater, 0C=lessThan, 03=greaterEquals, 0E=lessThanEquals
 08 OP                   ; PAUSE time=OP
-09 OPS OPW OPG OPR OPB  ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
+09 OPS OPB OPG OPR OPW  ; DEFINECOLOR color=OP, w=OP, r=OP, g=OP, b=OP
 0A OP NN WW HH ..       ; DEFPATTERN number=OP, length=NN, width height data ..
 0B OPP OPC              ; SETPIXEL pixel=OP, color=OP
 0C OP                   ; SETSOLID color=OP
