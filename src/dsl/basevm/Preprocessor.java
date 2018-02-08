@@ -189,6 +189,93 @@ public class Preprocessor {
 		
 	}
 	
+	public void fixWHILEs() {
+		
+		int constructNumber = 0;
+		
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);				
+				if(c.text.startsWith("while(")) {
+					
+					int i = findCloseBrace(fun,x,false);
+					CodeLine wh = fun.codeLines.get(i);
+					
+					++constructNumber;
+					
+					// __do?_START:           - before c
+					// goto __do?_CONTINUE    - in place of c
+					// _do?_TOP:             - after c
+					// __do?_CONTINUE:        - before wh
+					// if(...) then __do?_TOP - in place of wh
+					// __do?_BREAK:           - after wh
+					
+					CodeLine brk = new CodeLine(fun,"",0,"__do"+constructNumber+"_BREAK");
+					brk.isLabel = true;
+					fun.codeLines.add(i+1,brk);
+					
+					wh.text = "if"+c.text.substring(5,c.text.length()-1)+"then__do"+constructNumber+"_TOP";
+					
+					CodeLine cont = new CodeLine(fun,"",0,"__do"+constructNumber+"_CONTINUE");
+					cont.isLabel = true;
+					fun.codeLines.add(i,cont);					
+					
+					CodeLine top = new CodeLine(fun,"",0,"__do"+constructNumber+"_TOP");
+					top.isLabel = true;
+					fun.codeLines.add(x+1,top);
+					
+					c.text = "goto __do"+constructNumber+"_CONTINUE";
+					
+					CodeLine start = new CodeLine(fun,"",0,"__do"+constructNumber+"_START");
+					start.isLabel = true;
+										
+				}
+			}
+		}
+						
+	}
+	
+	public void fixBREAKs() {
+		
+		// break LAB:
+		// look down to find the __doLAB_BREAK (or next __BREAK if no LAB)
+		
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);				
+				if(c.text.startsWith("break")) {
+					String trg = c.text.substring(5);
+					
+					int y = x;
+					while(true) {
+						y = y + 1;
+						CodeLine b = fun.codeLines.get(y);
+						if(b.isLabel && )
+					}
+					
+					
+					//System.out.println("::"+c.text+"::");
+				}
+			}
+		}				
+	}
+	
+	public void fixCONTINUEs() {
+		
+		// continue LAB:
+		// look up to find the __doLAB_TOP (or next _TOP if no LAB)
+		// look down to find the __doLAB_CONTINUE (or next __CONTINUE if no LAB)
+		
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);				
+				if(c.text.startsWith("continue ") || c.text.equals("continue")) {
+					System.out.println("::"+c.text+"::");
+				}
+			}
+		}				
+	}
+	
 	public void dumpLines() {
 		for(Function f : prog.functions) {
 			System.out.println("##"+f.name+"##");
@@ -202,8 +289,10 @@ public class Preprocessor {
 		
 		// Convert DO loops to pure IF-THEN-GOTO
 		fixDOs();
-		
-		// TODO all breaks and continues at once after loops
+		fixWHILEs();
+		//fixFORs(); // TODO
+		fixBREAKs();
+		fixCONTINUEs();		
 		
 		// Convert ELSE-IF to nested IF
 		fixELSEIFs();
@@ -223,13 +312,11 @@ public class Preprocessor {
 		// Convert IF/ELSE to pure IF-THEN	
 		fixIFs();			
 				
-		dumpLines();
-		
-		// TODO				
-		// Convert DO and WHILE to pure IF (complex logic expressions)
-		
+		//dumpLines();
+				
 		// Maybe one day:
 		// Convert complex math expressions to a series of simple math calls
+		// Convert complex logic expressions to a series of simple ifs
 		
 	}
 

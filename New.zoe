@@ -8,16 +8,20 @@ here:
 
     var a = 0
    
-    do {
+    while(a<8) {
     
         setPixel(a,2)
         PAUSE(1000)
         setPixel(a,0)
         PAUSE(1000)
         
+        if(a==4) {
+            break
+        }
+        
         a = a + 1
-    
-    } while(a<8)
+                    
+    }
     
     goto here 
 

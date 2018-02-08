@@ -16,7 +16,7 @@ public class OpGOTO {
 			String dst = c.text.substring(5);
 			int i = c.function.findLabel(dst);
 			if(i<0) {
-				throw new CompileException("Label not found",c);
+				throw new CompileException("Label '"+dst+"' not found",c);
 			}
 			
 			int from = c.address+c.data.size();
