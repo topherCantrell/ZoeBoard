@@ -90,15 +90,35 @@ public class Compile {
 			CodeLine c = fun.codeLines.get(x);
 			if(c.isLabel) continue;
 			
-			// DSL Specific
+			// Zoe Specific
 			
 			if(c.text.startsWith("PAUSE(")) {
 				OpPAUSE.parse(c, firstPass);
 				continue;
 			}
 			
+			if(c.text.startsWith("setSolid(")) {
+				OpSOLID.parse(c, firstPass);
+				continue;
+			}
+			
 			if(c.text.startsWith("setPixel(")) {
 				OpSETPIXEL.parse(c, firstPass);
+				continue;
+			}
+			
+			if(c.text.startsWith("defColor(")) {
+				OpDEFCOLOR.parse(c, firstPass);
+				continue;
+			}
+			
+			if(c.text.startsWith("defPattern(")) {
+				OpDEFPATTERN.parse(c, firstPass);
+				continue;
+			}
+			
+			if(c.text.startsWith("drawPattern(")) {
+				OpDRAWPATTERN.parse(c, firstPass);
 				continue;
 			}
 			
