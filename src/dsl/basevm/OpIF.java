@@ -25,6 +25,12 @@ public class OpIF {
 		}
 		String lab = c.text.substring(i+5);
 		String expr = c.text.substring(3,i);
+		
+		if(expr.equals("true")) {
+			expr = "1==1";
+		} else if(expr.equals("false")) {
+			expr = "1==0";
+		}
 		int op = -1;
 		int opIndex = -1;
 		int orgOp = -1;

@@ -228,6 +228,7 @@ public class Preprocessor {
 					
 					CodeLine start = new CodeLine(fun,"",0,"__do"+constructNumber+"_START");
 					start.isLabel = true;
+					fun.codeLines.add(x,start);
 										
 				}
 			}
@@ -235,37 +236,71 @@ public class Preprocessor {
 						
 	}
 	
+	void commonBreakContinue(String target, String which, CodeLine c, int index) {
+		
+		// If target is given:
+		//    - check the label
+		//    - get the construct label
+		//    - change text to "goto ?_"+which
+		// If target is not given:
+		//    - work your way down to the "BREAK" label (skipping nested blocks)
+		//    - get the construct label
+		//    - change text to "goto ?"+which
+		
+		if(!target.isEmpty()) {
+			int i = c.function.findLabel(target);
+			if(i<0) {
+				throw new CompileException("Unknown label '"+target+"'",c);
+			}
+			CodeLine t = c.function.codeLines.get(i+1);
+			if(!t.isLabel || !t.text.endsWith("_START")) {
+				throw new CompileException("Label '"+target+"' is not the start of a loop",t);
+			}
+			c.text = "goto "+t.text.substring(0,t.text.length()-5)+which;
+		} else {
+			outer:
+			while(true) {
+				++index;
+				CodeLine sk = c.function.codeLines.get(index);
+				if(sk.isLabel && sk.text.endsWith("_START")) {
+					dumpLines();
+					String t = sk.text.substring(0,sk.text.length()-5);
+					while(true) {
+						++index;
+						sk = c.function.codeLines.get(index);
+						if(sk.isLabel && sk.text.equals(t+"BREAK")) {
+							continue outer;
+						}
+					}					
+				}
+				if(sk.isLabel && sk.text.endsWith("_BREAK")) {
+					break;
+				}
+			}
+			CodeLine sk = c.function.codeLines.get(index);
+			c.text = "goto "+sk.text.substring(0,sk.text.length()-5)+which;
+		}
+		
+	}
+	
 	public void fixBREAKs() {
-		
-		// break LAB:
-		// look down to find the __doLAB_BREAK (or next __BREAK if no LAB)
-		
+						
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
 				CodeLine c = fun.codeLines.get(x);				
 				if(c.text.startsWith("break")) {
 					String trg = c.text.substring(5);
-					
-					int y = x;
-					while(true) {
-						y = y + 1;
-						CodeLine b = fun.codeLines.get(y);
-						if(b.isLabel && )
-					}
-					
-					
-					//System.out.println("::"+c.text+"::");
+					commonBreakContinue(trg,"BREAK",c,x);					
+				} else if(c.text.startsWith("continue")) {
+					String trg = c.text.substring(8);
+					commonBreakContinue(trg,"CONTINUE",c,x);
 				}
 			}
 		}				
 	}
 	
 	public void fixCONTINUEs() {
-		
-		// continue LAB:
-		// look up to find the __doLAB_TOP (or next _TOP if no LAB)
-		// look down to find the __doLAB_CONTINUE (or next __CONTINUE if no LAB)
-		
+						
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
 				CodeLine c = fun.codeLines.get(x);				

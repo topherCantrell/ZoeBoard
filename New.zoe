@@ -4,10 +4,9 @@ var masterPix
 
 function init() {
 
-here:
-
     var a = 0
-   
+ 
+here:  
     while(a<8) {
     
         setPixel(a,2)
@@ -17,6 +16,10 @@ here:
         
         if(a==4) {
             break
+        }
+        
+        while(true) {
+            setPixel(0,0)
         }
         
         a = a + 1
