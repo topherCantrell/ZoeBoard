@@ -1,46 +1,49 @@
 package zoe;
 
 import dsl.CodeLine;
+import dsl.CompileException;
 
 public class OpDEFPATTERN {
 	
 	public static final int OPCODE = 0x0A;
 	
 	public static void parse(CodeLine c, boolean firstPass) {
-		if(firstPass) {
-			c.data.add(OPCODE);			
+		if(firstPass) {				
 			
-			throw new RuntimeException("IMPLEMENT ME");
+			// 0A nn ww hh ... (number, width, height, data)
 			
-			/*
-			 if(commandNospace.startsWith("PATTERN(")) {
-					line.data = new ArrayList<Integer>();
-					String num = getParam(params,"NUMBER",true);					
-					List<String> patLines = new ArrayList<String>();
-					++zp;
-					while(true) {
-						ZoeLine s = event.lines.get(zp++);
-						if(s.command.equals("}")) break;
-						patLines.add(s.command.trim());
-					}
-					--zp;
-					int width = patLines.get(0).length();
-					int height = patLines.size();
-					line.data.add(0x0B);event.codeLength+=1;
-					line.data.add(Integer.parseInt(num));event.codeLength+=1;
-					line.data.add(width);event.codeLength+=1;
-					line.data.add(height);event.codeLength+=1;
-					for(String s : patLines) {
-						for(int x=0;x<width;++x) {
-							char c = s.charAt(x);
-							if(c=='.') c='0';
-							line.data.add(c-'0');event.codeLength+=1;
-						}
-					}
-					
-					continue;
+			// TODO this should be a general purpose function
+			int i = c.text.indexOf("(");
+			int j = c.text.indexOf(")",i);
+			
+			String [] params = c.text.substring(i+1,j).split(",");
+			if(params.length!=3) {
+				throw new CompileException("Expected 3 numbers (n,w,h)",c);
+			}
+			
+			int num = Integer.parseInt(params[0]);
+			int width = Integer.parseInt(params[1]);
+			int height = Integer.parseInt(params[2]);			
+			
+			String data = c.text.substring(j+1);
+			
+			if(data.length() != width*height) {
+				throw new CompileException("Expected "+(width*height)+" data values",c);
+			}
+			
+			c.data.add(OPCODE);	
+			c.data.add(num);
+			c.data.add(width);
+			c.data.add(height);
+			
+			for(int x=0;x<data.length();++x) {
+				char h = data.charAt(x);
+				if(h=='.') {
+					c.data.add(0);
+				} else {
+					c.data.add(h-'0');
 				}
-			 */
+			}						
 			
 		} 
 	}

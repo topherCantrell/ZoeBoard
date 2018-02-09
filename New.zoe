@@ -4,19 +4,26 @@ var masterPix
 
 function init() {
 
+    defPattern(0) { // defPattern(0,5,7) 11111 1.... 1.... .111. ....1 ....1 11111
+        11111
+        1....
+        1....
+        .111.
+        ....1
+        ....1
+        11111
+    }
+
 var a
  
-while(true) {
-    
-    for(a=0;a<8;a=a+1) {
-    
-        setPixel(a,2)
-        PAUSE(1000)
-        setPixel(a,0)
-        PAUSE(1000)      
-                    
-    }
-    
-}
+	while(true) {
+	    
+	    for(a=0;a<8;a=a+1) {
+	    
+	        setPixel(a,2)        
+	                    
+	    }
+	    
+	}
 
 }

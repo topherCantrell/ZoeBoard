@@ -11,6 +11,8 @@ public class Preprocessor {
 	
 	Program prog;
 	
+	int constructNumber;
+	
 	public Preprocessor(Program prog) {
 		this.prog = prog;
 	}
@@ -112,7 +114,6 @@ public class Preprocessor {
 	}
 	
 	void fixIFs() {		
-		int constructNumber = 0;
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
 				CodeLine c = fun.codeLines.get(x);
@@ -156,8 +157,6 @@ public class Preprocessor {
 	
 	public void fixDOs() {
 		
-		int constructNumber = 0;
-		
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
 				CodeLine c = fun.codeLines.get(x);				
@@ -199,8 +198,6 @@ public class Preprocessor {
 	}
 	
 	public void fixWHILEs() {
-		
-		int constructNumber = 0;
 		
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
@@ -248,8 +245,6 @@ public class Preprocessor {
 	}
 	
 	void fixFORs() {
-		
-		int constructNumber = 0;
 		
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
@@ -365,8 +360,7 @@ public class Preprocessor {
 		
 	}
 	
-	public void fixBREAKandCONTINUEs() {
-						
+	public void fixBREAKandCONTINUEs() {						
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
 				CodeLine c = fun.codeLines.get(x);				
@@ -380,6 +374,31 @@ public class Preprocessor {
 			}
 		}				
 	}
+	
+	public void fixDEFPATTERNs() {
+		for(Function fun : prog.functions) {
+			for(int x=0;x<fun.codeLines.size();++x) {				
+				CodeLine c = fun.codeLines.get(x);				
+				if(c.text.startsWith("defPattern(") && c.text.endsWith("{")) {
+					String comb = "";
+					int height=0;
+					int y = x+1;
+					int width = fun.codeLines.get(y).text.trim().length();
+					while(!fun.codeLines.get(y).text.equals("}")) {
+						comb = comb + fun.codeLines.get(y).text.trim();
+						++y;
+						++height;
+					}
+					while(y!=x) {
+						fun.codeLines.remove(y);
+						--y;
+					}
+					c.text = c.text.substring(0,c.text.length()-2)+","+width+","+height+")"+comb;
+					c.changed = true;
+				}
+			}
+		}
+	}
 			
 	public void dumpLines() {
 		for(Function f : prog.functions) {
@@ -391,6 +410,11 @@ public class Preprocessor {
 	}
 	
 	public void preprocess() {
+		
+		constructNumber = 0;
+		
+		// Convert the multi-line patterns to one line
+		fixDEFPATTERNs();
 		
 		// Convert DO loops to pure IF-THEN-GOTO
 		fixDOs();

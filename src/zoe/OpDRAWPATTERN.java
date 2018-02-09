@@ -6,6 +6,20 @@ import dsl.basevm.Operand;
 
 public class OpDRAWPATTERN {
 	
+	/*
+	 
+	  defPattern(number=0) {
+          11111
+          1....
+          1....
+          .111.
+          ....1
+          ....1
+          11111
+      }
+	 
+	 */
+	
 	public static final int OPCODE = 0x0D;
 	
 	public static void parse(CodeLine c, boolean firstPass) {

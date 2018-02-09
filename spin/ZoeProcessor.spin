@@ -523,7 +523,7 @@ allOfRow
         jmp     #command                 ' Run till pause        
 
 mapPixel
-' TODO for now, we'll assume left to right plates. In the future we need a way
+' TODO for now, we'll assume left to right 8x8 plates. In the future we need a way
 ' of handling random geometries
         mov     p2,#0                    ' Start at pixel 0
         mov     bitCnt,asm_x             ' We will mangle the X
