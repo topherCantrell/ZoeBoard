@@ -16,6 +16,10 @@ public class ToSpin {
 			System.out.println("' ## Function "+fun.name);
 			for(CodeLine c : fun.codeLines) {
 				String out = "";
+				if(c.isLabel) {
+					System.out.println("' "+c.text+":");
+					continue;
+				}
 				if(c.data.size()>0) {
 					out = out +"    byte ";
 					for(int x=0;x<c.data.size();++x) {
@@ -26,7 +30,11 @@ public class ToSpin {
 						out = out+" ";
 					}				
 				}
-				out = out + "' "+c.originalText;
+				if(c.changed) {
+					out = out + " '# "+c.text;
+				} else {
+					out = out + " ' "+c.originalText;
+				}
 				System.out.println(out);				
 			}
 			System.out.println();

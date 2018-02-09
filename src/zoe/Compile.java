@@ -226,6 +226,7 @@ public class Compile {
 				if(i>=0) {
 					// This is an assignment ... keep the X=Y part
 					c.text = c.text.substring(4);
+					c.changed = true;
 				} else {
 					// This is a declaration ... remove it from the code
 					lines.remove(x);

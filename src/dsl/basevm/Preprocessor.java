@@ -18,7 +18,7 @@ public class Preprocessor {
 	void addRESLOCALs() {
 		for(Function fun : prog.functions) {
 			if(fun.localVars!=null && fun.localVars.size()>0) {
-				fun.codeLines.add(0,new CodeLine(fun,"",0,"reslocal("+fun.localVars.size()+")"));			
+				fun.codeLines.add(0,new CodeLine(fun,"reslocal("+fun.localVars.size()+")"));			
 			}
 		}
 	}
@@ -28,7 +28,7 @@ public class Preprocessor {
 			if(fun.codeLines.size()>0 && fun.codeLines.get(fun.codeLines.size()-1).text.startsWith("return")) {
 				continue;
 			}
-			fun.codeLines.add(new CodeLine(fun,"",0,"return"));
+			fun.codeLines.add(new CodeLine(fun,"return"));
 		}
 	}
 	
@@ -38,7 +38,8 @@ public class Preprocessor {
 				CodeLine c = fun.codeLines.get(x);
 				if(c.text.startsWith("return ")) {					
 					c.text = "__return__="+c.text.substring(7);
-					fun.codeLines.add(x+1,new CodeLine(fun,"",0,"return"));
+					c.changed = true;
+					fun.codeLines.add(x+1,new CodeLine(fun,"return"));
 				}
 			}
 		}
@@ -54,7 +55,8 @@ public class Preprocessor {
 					int i = c.text.indexOf("=");
 					String v = c.text.substring(0,i);
 					c.text = c.text.substring(i+1);
-					fun.codeLines.add(x+1,new CodeLine(fun,"",0,v+"=__RETVAL__"));					
+					c.changed = true;
+					fun.codeLines.add(x+1,new CodeLine(fun,v+"=__RETVAL__"));					
 				}
 			}
 		}		
@@ -98,11 +100,12 @@ public class Preprocessor {
 					int i = findCloseBrace(fun,x,true);
 					// Add a "}" after the last "elseif" or "else" line 
 					// The trick here is finding the "end"
-					fun.codeLines.add(i+1,new CodeLine(fun,"",0,"}"));
+					fun.codeLines.add(i+1,new CodeLine(fun,"}"));
 					// Move the "if(..." to the next line
-					fun.codeLines.add(x+1,new CodeLine(fun,"",0,c.text.substring(5)));				
+					fun.codeLines.add(x+1,new CodeLine(fun,c.text.substring(5)));				
 					// Change the current line to "}else{"					
-					c.text = "}else{";					
+					c.text = "}else{";			
+					c.changed = true;
 				}
 			}
 		}		
@@ -124,23 +127,27 @@ public class Preprocessor {
 					}
 					if(endOfAll == endOfIf) {
 						c.text = c.text.substring(0,c.text.length()-1)+"else__ff"+constructNumber+"_END";
+						c.changed = true;
 					} else {
 						c.text = c.text.substring(0,c.text.length()-1)+"else__ff"+constructNumber+"_ELSE";
+						c.changed = true;
 					}
 										
 					// change endOfIf to "if1_1:"
 					CodeLine ceoi = fun.codeLines.get(endOfIf);
 					ceoi.isLabel = true;
 					ceoi.text = "__ff"+constructNumber+"_ELSE";
+					ceoi.changed = true;
 					
 					// change endOfAll to "if1_2:"
 					CodeLine ecoa = fun.codeLines.get(endOfAll);
 					ecoa.isLabel = true;
-					ecoa.text="__ff"+constructNumber+"_END";					
+					ecoa.text="__ff"+constructNumber+"_END";			
+					ecoa.changed = true;
 					
 					// if has else ... add a "goto if1_2" BEFORE endOfIf
 					if(endOfAll!=endOfIf) {						
-						fun.codeLines.add(endOfIf,new CodeLine(fun,"",0,"goto __ff"+constructNumber+"_END"));
+						fun.codeLines.add(endOfIf,new CodeLine(fun,"goto __ff"+constructNumber+"_END"));
 					}										
 				}
 			}
@@ -172,14 +179,16 @@ public class Preprocessor {
 					
 					c.isLabel = true;
 					c.text = "__do"+constructNumber+"_CONTINUE";
+					c.changed = true;
 					
 					wh.text = "if"+wh.text.substring(6)+"then__do"+constructNumber+"_CONTINUE";
+					wh.changed = true;				
 					
-					CodeLine brk = new CodeLine(fun,"",0,"__do"+constructNumber+"_BREAK");
+					CodeLine brk = new CodeLine(fun,"__do"+constructNumber+"_BREAK");
 					brk.isLabel = true;
 					fun.codeLines.add(i+1,brk);
 					
-					CodeLine startLab = new CodeLine(fun,"",0,"__do"+constructNumber+"_START");
+					CodeLine startLab = new CodeLine(fun,"__do"+constructNumber+"_START");
 					startLab.isLabel = true;
 					fun.codeLines.add(x,startLab);					
 															
@@ -210,23 +219,25 @@ public class Preprocessor {
 					// if(...) then __do?_TOP - in place of wh
 					// __do?_BREAK:           - after wh
 					
-					CodeLine brk = new CodeLine(fun,"",0,"__do"+constructNumber+"_BREAK");
+					CodeLine brk = new CodeLine(fun,"__do"+constructNumber+"_BREAK");
 					brk.isLabel = true;
 					fun.codeLines.add(i+1,brk);
 					
 					wh.text = "if"+c.text.substring(5,c.text.length()-1)+"then__do"+constructNumber+"_TOP";
+					wh.changed = true;
 					
-					CodeLine cont = new CodeLine(fun,"",0,"__do"+constructNumber+"_CONTINUE");
+					CodeLine cont = new CodeLine(fun,"__do"+constructNumber+"_CONTINUE");
 					cont.isLabel = true;
 					fun.codeLines.add(i,cont);					
 					
-					CodeLine top = new CodeLine(fun,"",0,"__do"+constructNumber+"_TOP");
+					CodeLine top = new CodeLine(fun,"__do"+constructNumber+"_TOP");
 					top.isLabel = true;
 					fun.codeLines.add(x+1,top);
 					
 					c.text = "goto __do"+constructNumber+"_CONTINUE";
+					c.changed = true;
 					
-					CodeLine start = new CodeLine(fun,"",0,"__do"+constructNumber+"_START");
+					CodeLine start = new CodeLine(fun,"__do"+constructNumber+"_START");
 					start.isLabel = true;
 					fun.codeLines.add(x,start);
 										
@@ -269,18 +280,18 @@ public class Preprocessor {
 					wh.text = "__do"+constructNumber+"_BREAK";
 					wh.isLabel = true;
 					
-					CodeLine exp = new CodeLine(fun,"",0,"if("+frags[1]+")then__do"+constructNumber+"_TOP");
+					CodeLine exp = new CodeLine(fun,"if("+frags[1]+")then__do"+constructNumber+"_TOP");
 					fun.codeLines.add(i,exp);
 					
-					CodeLine chk = new CodeLine(fun,"",0,"__do"+constructNumber+"_CHECK");
+					CodeLine chk = new CodeLine(fun,"__do"+constructNumber+"_CHECK");
 					chk.isLabel = true;
 					fun.codeLines.add(i,chk);
 					
 					if(!frags[2].isEmpty()) {
-						fun.codeLines.add(i,new CodeLine(fun,"",0,frags[2]));
+						fun.codeLines.add(i,new CodeLine(fun,frags[2]));
 					}
 					
-					CodeLine cont = new CodeLine(fun,"",0,"__do"+constructNumber+"_CONTINUE");
+					CodeLine cont = new CodeLine(fun,"__do"+constructNumber+"_CONTINUE");
 					cont.isLabel = true;
 					fun.codeLines.add(i,cont);
 					
@@ -288,14 +299,15 @@ public class Preprocessor {
 					
 					c.text = "__do"+constructNumber+"_TOP";
 					c.isLabel = true;
+					c.changed = true;
 					
-					fun.codeLines.add(x,new CodeLine(fun,"",0,"goto __do"+constructNumber+"_CHECK"));
+					fun.codeLines.add(x,new CodeLine(fun,"goto __do"+constructNumber+"_CHECK"));
 					
 					if(!frags[0].isEmpty()) {
-						fun.codeLines.add(x,new CodeLine(fun,"",0,frags[0]));
+						fun.codeLines.add(x,new CodeLine(fun,frags[0]));
 					}
 					
-					CodeLine start = new CodeLine(fun,"",0,"__do"+constructNumber+"_START");
+					CodeLine start = new CodeLine(fun,"__do"+constructNumber+"_START");
 					start.isLabel = true;
 					fun.codeLines.add(x,start);
 					
@@ -326,6 +338,7 @@ public class Preprocessor {
 				throw new CompileException("Label '"+target+"' is not the start of a loop",t);
 			}
 			c.text = "goto "+t.text.substring(0,t.text.length()-5)+which;
+			c.changed = true;
 		} else {
 			outer:
 			while(true) {
@@ -347,11 +360,12 @@ public class Preprocessor {
 			}
 			CodeLine sk = c.function.codeLines.get(index);
 			c.text = "goto "+sk.text.substring(0,sk.text.length()-5)+which;
+			c.changed = true;
 		}
 		
 	}
 	
-	public void fixBREAKs() {
+	public void fixBREAKandCONTINUEs() {
 						
 		for(Function fun : prog.functions) {
 			for(int x=0;x<fun.codeLines.size();++x) {				
@@ -366,19 +380,7 @@ public class Preprocessor {
 			}
 		}				
 	}
-	
-	public void fixCONTINUEs() {
-						
-		for(Function fun : prog.functions) {
-			for(int x=0;x<fun.codeLines.size();++x) {				
-				CodeLine c = fun.codeLines.get(x);				
-				if(c.text.startsWith("continue ") || c.text.equals("continue")) {
-					System.out.println("::"+c.text+"::");
-				}
-			}
-		}				
-	}
-	
+			
 	public void dumpLines() {
 		for(Function f : prog.functions) {
 			System.out.println("##"+f.name+"##");
@@ -394,8 +396,7 @@ public class Preprocessor {
 		fixDOs();
 		fixWHILEs();
 		fixFORs();
-		fixBREAKs();
-		fixCONTINUEs();		
+		fixBREAKandCONTINUEs();
 		
 		// Convert ELSE-IF to nested IF
 		fixELSEIFs();
