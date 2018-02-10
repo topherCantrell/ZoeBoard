@@ -10,8 +10,7 @@ public class OpDEFCOLOR {
 	
 	public static void parse(CodeLine c, boolean firstPass) {
 		if(firstPass) {
-			c.data.add(OPCODE);
-			
+						
 			boolean hasWhite = c.function.prog.configHasWhite;
 			
 			String t = c.text.substring(9);
@@ -30,16 +29,18 @@ public class OpDEFCOLOR {
 				}
 			}
 			c.data.add(OPCODE);
-			Operand.parseOperand(c,ops[0]);
-			Operand.parseOperand(c,ops[1]);
-			Operand.parseOperand(c,ops[2]);
-			Operand.parseOperand(c,ops[3]);
+			Operand.parseOperand(c,ops[0]); // slot
+			
 			if(ops.length>4) {
-				Operand.parseOperand(c, ops[4]);
+				Operand.parseOperand(c, ops[4]); // white
 			} else {
 				c.data.add(0);
 				c.data.add(0);
 			}			
+			
+			Operand.parseOperand(c,ops[2]);
+			Operand.parseOperand(c,ops[1]);			
+			Operand.parseOperand(c,ops[3]);	
 			
 		}
 	}

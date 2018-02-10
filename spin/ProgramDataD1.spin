@@ -57,27 +57,32 @@ zoeProgram
 
 
 
-' ## Function init
-    byte $04,$01                ' reslocal(1)
-    byte $01,$00,$05,$80,$00    '   masterPix = 5
-' here:
-    byte $05,$02,$00,$03,$00,$02,$00,$19'   var a = doStuff(3,2)
-    byte $01,$82,$00,$81,$00    ' a=__RETVAL__
-    byte $0B,$81,$00,$00,$02    '   setPixel(a,2)
-    byte $08,$03,$E8            '   PAUSE(1000)
-    byte $0B,$81,$00,$00,$00    '   setPixel(a,0)
-    byte $08,$03,$E8            '   PAUSE(1000)
-    byte $03,$FF,$E0            '   goto here
-    byte $06                    ' return
 
-' ## Function doStuff
-    byte $02,$80,$00,$81,$00,$20,$80,$00'     masterPix = masterPix + of1
-    byte $02,$80,$00,$81,$01,$21,$80,$00'     masterPix = masterPix - of2
-    byte $07,$00,$05,$80,$00,$0C,$00,$08'     if(masterPix<8) then out
-    byte $01,$00,$00,$80,$00    '     masterPix = 0    
-' out:
-    byte $01,$80,$00,$81,$00    '     return masterPix
-    byte $06                    ' return
+' ## Function init
+    byte $04,$01                 '# reslocal(1)
+    byte $0A,$00,$05,$07,$01,$01,$01,$01,$01,$01,$00,$00,$00,$00,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,$00,$00,$00,$01,$00,$00,$00,$00,$01,$01,$01,$01,$01,$01 '# defPattern(0,5,7)111111....1.....111.....1....111111
+    byte $09,$00,$02,$00,$00,$00,$20,$00,$20,$00,$00 '     defColor(2,32,32,0)
+' __do1_START:
+    byte $03,$00,$29             '# goto __do1_CONTINUE
+' __do1_TOP:
+    byte $01,$00,$00,$81,$00     '# a=0
+' __do2_START:
+    byte $01,$00,$00,$81,$00     '# a=0
+    byte $03,$00,$14             '# goto __do2_CHECK
+' __do2_TOP:
+    byte $0C,$00,$02             '              setSolid(2)        
+    byte $08,$03,$E8             '              PAUSE(1000)
+    byte $0C,$00,$00             '              setSolid(0)
+    byte $08,$03,$E8             '              PAUSE(1000)
+' __do2_CONTINUE:
+    byte $02,$81,$00,$00,$01,$20,$81,$00 '# a=a+1
+' __do2_CHECK:
+    byte $07,$FF,$E4,$81,$00,$0C,$00,$08 '# if(a<8)then__do2_TOP
+' __do2_BREAK:
+' __do1_CONTINUE:
+    byte $07,$FF,$CF,$00,$01,$0A,$00,$01 '# if(true)then__do1_TOP
+' __do1_BREAK:
+    byte $06                     '# return
 
 
 

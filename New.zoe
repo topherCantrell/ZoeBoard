@@ -13,14 +13,19 @@ function init() {
         ....1
         11111
     }
-
-var a
+    
+    defColor(2,32,32,0)
  
 	while(true) {
+	
+	    var a = 0
 	    
 	    for(a=0;a<8;a=a+1) {
 	    
-	        setPixel(a,2)        
+	        setSolid(2)        
+	        PAUSE(1000)
+	        setSolid(0)
+	        PAUSE(1000)
 	                    
 	    }
 	    
