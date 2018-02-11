@@ -138,11 +138,11 @@ public class Program {
 					throw new CompileException("Expected '{' after ')'",c);
 				}
 				currentFunction = new Function(ret,s.substring(0,i));
-				int ch = ret.findFunction(currentFunction.name);
-				
+				int ch = ret.findFunction(currentFunction.name);				
 				if(ch>=0) {
 					throw new CompileException("Function name already exists",c);
-				}	
+				}
+				
 				ret.functions.add(currentFunction);
 				currentFunction.codeLines = new ArrayList<CodeLine>();
 				currentFunction.arguments = new ArrayList<String>();
@@ -151,7 +151,13 @@ public class Program {
 					if(!arg.isEmpty()) {
 						currentFunction.arguments.add(arg);
 					}
-				}				
+				}
+				if(currentFunction.name.equals(currentFunction.name.toUpperCase())) {
+					currentFunction.isEvent = true;
+					if(currentFunction.arguments.size()!=0) {
+						throw new CompileException("Event functions can take no arguments.",c);
+					}
+				}
 			} else if(currentFunction==null) {
 				ret.globalLines.add(c);
 			} else {

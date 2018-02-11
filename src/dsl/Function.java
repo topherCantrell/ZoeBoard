@@ -12,6 +12,8 @@ public class Function {
 	public List<String> localVars;
 
 	public List<CodeLine> codeLines;
+
+	public boolean isEvent;
 	
 	public Function(Program prog, String name) {
 		this.prog = prog;

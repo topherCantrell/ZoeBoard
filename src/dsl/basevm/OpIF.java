@@ -13,6 +13,7 @@ public class OpIF {
 	public static int [] LOGICREV =     { 1,   0,   5,     4,    3,    2};
 	
 	public static void parse(CodeLine c, boolean firstPass) {
+				
 		int i = c.text.lastIndexOf(")");
 		if(i<0) {
 			throw new CompileException("Expected ')'",c);

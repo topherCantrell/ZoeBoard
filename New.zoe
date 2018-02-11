@@ -33,3 +33,9 @@ function init() {
 	}
 
 }
+
+function PULL_IN() {
+}
+
+function SHOOT_OUT() {
+}
