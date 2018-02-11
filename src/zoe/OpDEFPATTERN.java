@@ -2,6 +2,7 @@ package zoe;
 
 import dsl.CodeLine;
 import dsl.CompileException;
+import dsl.Parameters;
 
 public class OpDEFPATTERN {
 	
@@ -12,20 +13,23 @@ public class OpDEFPATTERN {
 			
 			// 0A nn ww hh ... (number, width, height, data)
 			
-			// TODO this should be a general purpose function
-			int i = c.text.indexOf("(");
-			int j = c.text.indexOf(")",i);
+			int num;
+			int width;
+			int height;
 			
-			String [] params = c.text.substring(i+1,j).split(",");
-			if(params.length!=3) {
+			Parameters p= new Parameters(c,false);
+			if(p.params.length != 3) {
 				throw new CompileException("Expected 3 numbers (n,w,h)",c);
 			}
+			try {
+				num = Integer.parseInt(p.params[0]);
+				width = Integer.parseInt(p.params[1]);
+				height = Integer.parseInt(p.params[2]);
+			} catch (Exception e) {
+				throw new CompileException("Invalid number",c);
+			}
 			
-			int num = Integer.parseInt(params[0]);
-			int width = Integer.parseInt(params[1]);
-			int height = Integer.parseInt(params[2]);			
-			
-			String data = c.text.substring(j+1);
+			String data = c.text.substring(p.end+1);
 			
 			if(data.length() != width*height) {
 				throw new CompileException("Expected "+(width*height)+" data values",c);
