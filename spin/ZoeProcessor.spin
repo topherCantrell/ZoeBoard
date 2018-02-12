@@ -1,17 +1,18 @@
-pub init(ioPin,numPixels,bitsToSend,ofs_eventInput,ofs_palette,ofs_patterns,ofs_stack,ofs_variables,ofs_pixBuf,ofs_eventTab,ofs_pc)
+pub init(ioPin,numPixels,bitsToSend,addr_eventInput,addr_palette,addr_patterns,addr_stack,addr_variables,addr_pixBuf,addr_eventTab,addr_code,addr_pc)
 '' Start the NeoPixel driver cog
 
    pn             := ioPin
    par_pixCount   := numPixels
    numBitsToSend  := bitsToSend
-   eventInput     := ofs_eventInput
-   par_palette    := ofs_palette
-   patterns       := ofs_patterns
-   resetStackPtr  := ofs_stack
-   variables      := ofs_variables
-   par_buffer     := ofs_pixBuf
-   events         := ofs_eventTab
-   programCounter := ofs_pc    
+   eventInput     := addr_eventInput
+   par_palette    := addr_palette
+   patterns       := addr_patterns
+   resetStackPtr  := addr_stack
+   variables      := addr_variables
+   par_buffer     := addr_pixBuf
+   events         := addr_eventTab
+   codeStart      := addr_code
+   programCounter := addr_pc     
          
    return cognew(@ZoeCOG,0)
    
@@ -183,7 +184,7 @@ thisWord
 
         mov     programCounter,p            ' Routine reads from programCounter
         call    #ReadWord                   ' Get the entry address
-        add     tmp,events                  ' Offset from the event table
+        add     tmp,codeStart               ' Offset from start of code
         mov     programCounter,tmp          ' Start of event handler
         mov     stackPointer, resetStackPtr ' Reset the stack        
         wrbyte  ZERO,eventInput             ' Clear the trigger        
@@ -643,7 +644,8 @@ patterns         long 0          ' Pointer to patterns
 resetStackPtr    long 0          ' Start of stack space (to reset the stack ptr)
 variables        long 0          ' Pointer to variables 
 par_buffer       long 0          ' Pointer to the pixel data buffer
-events           long 0          ' Pointer to events   
+events           long 0          ' Pointer to events
+codeStart        long 0          ' Pointer to start of code (offset for events)
 '
 pauseCounter     long 0          ' number of tics left in pause   
 programCounter   long 0          ' Current PC

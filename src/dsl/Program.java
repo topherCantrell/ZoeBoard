@@ -12,6 +12,8 @@ public class Program {
 	public int configLength;
 	public boolean configHasWhite;
 	
+	// TODO the configure() needs to be DSL specific
+	
 	public String fileName;
 	
 	public List<String> vars;

@@ -1,9 +1,10 @@
 CON
 
-  IOPIN      = %00000000_00000000_10000000_00000000 
-  NUMPIXELS  = 8
-  BITSTOSEND = 24
-  NUMGLOBALS = 4
+  IOPIN     = %00000000_00000000_10000000_00000000
+  NUMPIXELS      = 96
+  BITSTOSEND     = 24
+  NUMGLOBALS     = 1
+  TABSIZE        = 23
 
   OFS_EVENTINPUT = 0
   OFS_PALETTE    = OFS_EVENTINPUT + 32
@@ -12,20 +13,20 @@ CON
   OFS_VARIABLES  = OFS_STACK      + 64*2
   OFS_PIXBUF     = OFS_VARIABLES  + NUMGLOBALS*2
   OFS_EVENTTAB   = OFS_PIXBUF     + NUMPIXELS
+  OFS_CODE       = OFS_EVENTTAB   + TABSIZE
 
-  INIT_PC        = OFS_EVENTTAB   + 16
+  OFS_PC         = OFS_CODE + 0
 
 pub getProgram
   return @zoeProgram
 
 DAT
 zoeProgram
-
 'eventInput
-  byte 0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0
+  byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-'palette  ' 64 longs (64 colors)
-  long 0,$000800,$000008,$080000,$080808,0,0,0,0,0,0,0,0,0,0,0
+'palette  ' 64 colors)  
+  long 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   long 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   long 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   long 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -33,35 +34,28 @@ zoeProgram
 'patterns ' 16 pointers
   word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-'callstack ' 64 words (slots)
-  word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-  word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+'callstack ' 64 slots
+  word 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-'variables ' Variable storage (2 bytes each)
-  word 0,0,0,0
+'variables ' 1 variables
+  word 0
 
-'pixbuffer ' 1 byte per pixel
-  byte 0,0,0,0,0,0,0,0
+'pixelbuffer ' 96 pixels
+  byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
-'eventTable
-  byte "COOL",   0, $00,$10
-  byte "THROB",  0, $00,$F3
+'eventTable (offsets from start of code)
+  byte "PULL_IN", 0, $00, $6E
+  byte "SHOOT_OUT", 0, $00, $6F
   byte 0
 
-
-
-
-
-
-
-
+' Code
 
 ' ## Function init
     byte $04,$01                 '# reslocal(1)
     byte $0A,$00,$05,$07,$01,$01,$01,$01,$01,$01,$00,$00,$00,$00,$01,$00,$00,$00,$00,$00,$01,$01,$01,$00,$00,$00,$00,$00,$01,$00,$00,$00,$00,$01,$01,$01,$01,$01,$01 '# defPattern(0,5,7)111111....1.....111.....1....111111
     byte $09,$00,$02,$00,$00,$00,$20,$00,$20,$00,$00 '     defColor(2,32,32,0)
+    byte $0B,$00,$00,$00,$00     '     setPixel(0,0)
 ' __do1_START:
     byte $03,$00,$29             '# goto __do1_CONTINUE
 ' __do1_TOP:
@@ -84,45 +78,9 @@ zoeProgram
 ' __do1_BREAK:
     byte $06                     '# return
 
+' ## Function PULL_IN
+    byte $06                     '# return
 
+' ## Function SHOOT_OUT
+    byte $06                     '# return
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'INIT_handler
-
-  byte $05,   2, $80,$01, 0,4,   0,11  ' CALL +11
-  byte $05,   2, $00,$03, 0,4,   0,3   ' CALL +3 
-  byte $03,   $FF,$ED              ' GOTO -19
-
-  byte $04, 10               ' RESLOCAL(num=10)
-  byte $0B,   $81,$00,  0,2  ' SET(pixel=0, color=2) 
-  byte $08,   $03,$E8        ' PAUSE(time=$3E8 1000ms)
-  byte $0B,   $81,$00,  0,0  ' SET(pixel=0, color=0)
-  byte $08,   $03,$E8        ' PAUSE(time=$3E8 1000ms)
-  byte $06                   ' RETURN

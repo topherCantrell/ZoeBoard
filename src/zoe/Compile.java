@@ -57,14 +57,12 @@ public class Compile {
 		int ch = prog.findFunction("init");
 		if(ch<0) {
 			throw new CompileException("Must have an 'init()' function",null);
-		}
-		
-		Function init = prog.functions.get(ch);
-		
+		}		
+		Function init = prog.functions.get(ch);		
 		if(init.arguments.size()!=0) {
 			throw new CompileException("The 'init()' function must take no arguments",null);
 		}
-		
+						
 		Preprocessor pre = new Preprocessor(prog);
 		pre.preprocess();
 		
