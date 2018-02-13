@@ -1,6 +1,10 @@
-pub init(ioPin,numPixels,bitsToSend,addr_eventInput,addr_palette,addr_patterns,addr_stack,addr_variables,addr_pixBuf,addr_eventTab,addr_code,addr_pc)
+var
+   long  eventBufferPtr
+   
+pub init(pnt,ioPin,numPixels,bitsToSend,addr_eventInput,addr_palette,addr_patterns,addr_stack,addr_variables,addr_pixBuf,addr_eventTab,addr_code,addr_pc)
 '' Start the NeoPixel driver cog
 
+   eventBufferPtr := pnt
    pn             := ioPin
    par_pixCount   := numPixels
    numBitsToSend  := bitsToSend
@@ -15,7 +19,26 @@ pub init(ioPin,numPixels,bitsToSend,addr_eventInput,addr_palette,addr_patterns,a
    programCounter := addr_pc     
          
    return cognew(@ZoeCOG,0)   
-       
+
+PUB fireEvent(buf) | pp,cc,ff
+
+  ff := 0               ' First (trigger) character (none yet)
+  pp := eventBufferPtr  ' Buffer to fill
+
+  repeat
+    cc := byte[buf]               ' Next byte from the incoming string
+    if cc==0                      ' If this is the end of the string ...
+      byte[pp] := 0               '   terminate the event string
+      byte[eventBufferPtr] := ff  '   trigger the event
+      return                      '   done
+    if cc>31                      ' Ignore line feeds and such
+      if ff==0                    '   if this is the first character in the string ...
+        ff := cc                  '     hold onto it to be the trigger value
+      else                        '   otherwise
+        byte[pp] := cc            '     copy the character to the event string
+      pp := pp + 1                '   Either way ... next in the event string
+    buf := buf + 1                ' Whether good or not ... advance the input string pointer
+           
 DAT          
         org 0
 
