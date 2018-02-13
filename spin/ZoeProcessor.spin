@@ -14,8 +14,8 @@ pub init(ioPin,numPixels,bitsToSend,addr_eventInput,addr_palette,addr_patterns,a
    codeStart      := addr_code
    programCounter := addr_pc     
          
-   return cognew(@ZoeCOG,0)
-   
+   return cognew(@ZoeCOG,0)   
+       
 DAT          
         org 0
 

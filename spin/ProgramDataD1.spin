@@ -1,6 +1,6 @@
 CON
 
-  IOPIN     = %00000000_00000000_10000000_00000000
+  IOPIN   = %00000000_00000000_10000000_00000000
   NUMPIXELS      = 96
   BITSTOSEND     = 24
   NUMGLOBALS     = 1
@@ -19,6 +19,25 @@ CON
 
 pub getProgram
   return @zoeProgram
+
+PUB fireEvent(buf) | p,c, f
+
+  f := 0            ' First (trigger) character (none yet)
+  p := @zoeProgram  ' Buffer to fill
+
+  repeat
+    c := byte[buf]            ' Next byte from the incoming string
+    if c==0                   ' If this is the end of the string ...
+      byte[p] := 0            '   terminate the event string
+      byte[@zoeProgram] := f  '   trigger the event
+      return                  '   done
+    if c>31                   ' Ignore line feeds and such
+      if f==0                 '   if this is the first character in the string ...
+        f := c                '     hold onto it to be the trigger value
+      else                    '   otherwise
+        byte[p] := c          '     copy the character to the event string
+      p := p + 1              '   Either way ... next in the event string
+    buf := buf + 1            ' Whether good or not ... advance the input string pointer
 
 DAT
 zoeProgram
