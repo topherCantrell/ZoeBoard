@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>New LEDs</title>
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>   
+    <script src="neo.js"></script> 
+  </head>
+  
+  <body>
+  
+  Test area:<br>
+  <svg id="newZoe" width="200" height="40" style="background-color: black;"></svg>  
+  
+  <script>
+  
+      NEO.setCursor(20,20,"newZoe","D1",8,18,0);  
+      NEO.makeLine(1,10);
+      
+      //NEO.setPixel("D1",2,"darkblue");
+  
+  </script>  
+  
+  </body>
+  
+</html>
