@@ -1,41 +1,35 @@
-configure(D1,96,false)
-
-var masterPix
-
+// Test program
+configure(D1,10,false)
+  
 function init() {
 
-    defPattern(0) { // defPattern(0,5,7) 11111 1.... 1.... .111. ....1 ....1 11111
-        11111
-        1....
-        1....
-        .111.
-        ....1
-        ....1
-        11111
-    }
-    
-    defColor(2,32,32,0)
-    setPixel(0,0)
- 
-	while(true) {
-	
-	    var a = 0
-	    
-	    for(a=0;a<8;a=a+1) {
-	    
-	        setSolid(2)        
-	        PAUSE(1000)
-	        setSolid(0)
-	        PAUSE(1000)
-	                    
-	    }
-	    
-	}
+  defColor(1,32,0,0)
+  defColor(2,0,32,0)
+  defColor(3,0,0,32)
+
+here:
+  setSolid(1)
+  PAUSE(1000)
+  setSolid(0)
+  PAUSE(1000)
+  goto here
 
 }
 
-function PULL_IN() {
+function PUSH() {
+here:
+  setSolid(2)
+  PAUSE(1000)
+  setSolid(0)
+  PAUSE(100)
+  goto here
 }
 
-function SHOOT_OUT() {
+function PULL() {
+here:
+  setSolid(3)
+  PAUSE(1000)
+  setSolid(0)
+  PAUSE(100)
+  goto here
 }
