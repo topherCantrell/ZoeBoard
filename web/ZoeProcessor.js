@@ -1,3 +1,16 @@
+
+function ZoeProcessor(strip) {
+	
+	my = {}
+	
+	my.strip = strip;
+	
+	return my;
+	
+}
+
+
+
 /**
  * Create an asynchronous script process for the given script. The given "stripElement" is the SVG
  * canvas that contains the target pixels. You can put as many strips on one SVG element as you 
