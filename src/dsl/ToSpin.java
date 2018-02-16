@@ -94,27 +94,7 @@ public class ToSpin {
 		os.println("pub getProgram");  
 		os.println("  return @zoeProgram");  
 		os.println("");
-		
-		os.println("PUB fireEvent(buf) | p,c, f");
-		os.println("");
-		os.println("  f := 0            ' First (trigger) character (none yet)");
-		os.println("  p := @zoeProgram  ' Buffer to fill");
-		os.println("");  
-		os.println("  repeat");
-		os.println("    c := byte[buf]            ' Next byte from the incoming string");
-		os.println("    if c==0                   ' If this is the end of the string ...");
-		os.println("      byte[p] := 0            '   terminate the event string");
-		os.println("      byte[@zoeProgram] := f  '   trigger the event");
-		os.println("      return                  '   done");
-		os.println("    if c>31                   ' Ignore line feeds and such");
-		os.println("      if f==0                 '   if this is the first character in the string ...");
-		os.println("        f := c                '     hold onto it to be the trigger value");
-		os.println("      else                    '   otherwise");
-		os.println("        byte[p] := c          '     copy the character to the event string");
-		os.println("      p := p + 1              '   Either way ... next in the event string");
-		os.println("    buf := buf + 1            ' Whether good or not ... advance the input string pointer");
-		
-		os.println(""  );
+				
 		os.println("DAT" );
 		os.println("zoeProgram");
 		
