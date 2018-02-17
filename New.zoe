@@ -1,5 +1,5 @@
 // Test program
-configure(D1,10,false)
+configure(D1,8,false)
   
 function init() {
 

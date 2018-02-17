@@ -6,7 +6,7 @@ pub init(pnt,ioPin,numPixels,bitsToSend,addr_eventInput,addr_palette,addr_patter
 
    eventBufferPtr := pnt
    pn             := ioPin
-   par_pixCount   := numPixels
+   par_pixCount   := 8 'numPixels
    numBitsToSend  := bitsToSend
    eventInput     := addr_eventInput
    par_palette    := addr_palette
@@ -27,6 +27,7 @@ PUB fireEvent(buf) | pp,cc,ff
 
   repeat
     cc := byte[buf]               ' Next byte from the incoming string
+    buf := buf + 1                ' Next in string
     if cc==0                      ' If this is the end of the string ...
       byte[pp] := 0               '   terminate the event string
       byte[eventBufferPtr] := ff  '   trigger the event
@@ -37,7 +38,6 @@ PUB fireEvent(buf) | pp,cc,ff
       else                        '   otherwise
         byte[pp] := cc            '     copy the character to the event string
       pp := pp + 1                '   Either way ... next in the event string
-    buf := buf + 1                ' Whether good or not ... advance the input string pointer
            
 DAT          
         org 0
@@ -171,11 +171,11 @@ comTable
 
 ' -------------------------------------------------------------------------------------------------
 
-doEvent
+doEvent        
+
         mov     p,events                 ' Pointer to events
 doEvent2
-        mov     p2,eventInput            ' Input buffer
-        add     p2,#1                    ' Skip over trigger
+        mov     p2,eventInput            ' Input buffer        
 
         rdbyte  c,p wz                   ' Next in event table
         cmp     c,#$FF wz                ' Reached the end of the event table?
