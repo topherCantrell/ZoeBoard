@@ -6,6 +6,7 @@
     <title>New LEDs</title>
     <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>   
     <script src="neo.js"></script> 
+    <script src="ZoeProcessor.js"></script>
   </head>
   
   <body>
@@ -15,6 +16,17 @@
   <textarea class="D1" rows="20" cols="50">
 // Test program
 configure(D1,10,false)
+
+function init() {
+
+here:
+    setPixel(0,1)
+    PAUSE(1000)
+    setPixel(0,0)
+    PAUSE(1000)
+    goto here
+
+}
   </textarea>
   <br>
   <button class="D1">Restart</button>
@@ -25,8 +37,9 @@ configure(D1,10,false)
       NEO.setCursor(20,20,"newZoe","D1",8,18,0);  
       NEO.makeLine(1,10);      
       
-      zoe = ZOEProcessor("D1");
-      zoe.runToPause
+      zoe = ZoeProcessor("D1",$("textarea.D1").val());
+      
+      zoe.run("init");
       
   </script>  
   

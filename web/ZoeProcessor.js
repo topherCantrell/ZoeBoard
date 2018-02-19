@@ -1,13 +1,100 @@
 
-function ZoeProcessor(strip) {
+function ZoeProcessor(strip,program) {
+	
+	function parse(line) {
+		// TODO strip whitespace and comments
+		i = line.indexOf('//');
+		if(i>0) {
+			line = i.substring(0,i)
+		}
+		line = line.trim()
+		return line;
+	}
+	
+	function programError(lineNumber, message) {
+		console.log("Error on line "+lineNumber);
+		console.log(message);
+		throw "Oops";
+	}
+	
+	function findNextInstruction(i) {
+		while(true) {
+			// TODO end of program error
+			g = my.program[i++];
+			g = parse(g);
+			if(g.endsWith(":")) continue;
+			if(g.length==0) continue;			
+			if(g=="}") {
+				// TODO underflow error
+				frame = my.stack.pop();
+				i = frame.returnLineNumber;
+				continue;
+			}			
+			return i-1;
+		}
+	}
+	
+	function parseParameters(line) {
+		i = line.indexOf("(");
+		j = line.lastIndexOf(")");
+		terms = line.substring(i+1,j).split(",");
+		// Look up variables. Could be "D1" etc. Could be "True"
+	}
+	
+	function next() {
+		my.pc = findNextInstruction(my.pc);
+		console.log(my.program[my.pc]);
+		line = parse(my.program[my.pc])
+		if(line.startsWith("PAUSE(")) {
+			throw "Imnplement PAUSE";
+		} else if(line.startsWith("setPixel(")) {
+			throw "Implement setPixel";
+		}
+		
+		else {
+			// TODO look for function calls here
+			programError(my.pc, "Unknown instruction");
+		}
+		
+	}
 	
 	my = {}
 	
 	my.strip = strip;
+	my.program = program.split('\n');
+	my.pc = 0;
+	my.stack = [];
+	
+	my.run = function(event) {
+						
+		// Find the function
+		my.pc = 0
+		while(true) {
+			if(my.pc>=my.program.length) {
+				programError(my.pc,"Did not find function '"+event+"'");
+			}
+			lin = parse(my.program[my.pc++]);
+			if(lin.startsWith("function "+event+"(")) {
+				break;
+			}
+		}
+		
+		// Reset the stack
+		my.stack = [];		
+		++my.pc;
+		
+		next();
+
+	}
 	
 	return my;
 	
 }
+
+
+
+
+
 
 
 
