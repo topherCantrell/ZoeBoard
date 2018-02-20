@@ -1,5 +1,7 @@
 // Test program
 configure(D1,8,false)
+
+include myFunctions.zoe
   
 function init() {
 
