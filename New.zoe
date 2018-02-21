@@ -2,7 +2,7 @@
 configure(D1,8,false)
 
 include myFunctions.zoe
-  
+
 function init() {
 
   defColor(1,32,0,0)

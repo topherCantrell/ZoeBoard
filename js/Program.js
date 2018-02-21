@@ -6,11 +6,26 @@ var globalLines = []
 var functions = []
 
 function removeSpaces(s) {
-	s = s.trim();
-	
-	// TODO
+	s = s.replace(/\s+/g, ' ').trim();
 		
-	return s;
+	var ret = '';
+	
+	for(var x=0;x<s.length;++x) {
+		var c = s[x];
+		// Not perfect
+		if(c==' ') {
+			var a = s[x-1].toUpperCase();
+			var b = s[x+1].toUpperCase();
+			if(a>='A' && a<='Z') a='0';
+			if(b>='A' && b<='Z') b='0';
+			if(a>='0' && a<='9') a='0';
+			if(b>='0' && b<='9') b='0';
+			if(a!='0' || b!='0') continue;			
+		}
+		ret = ret + c;
+	}
+	
+	return ret;
 }
 
 exports.load = function(name) {
@@ -65,7 +80,25 @@ exports.load = function(name) {
 		
 		if(s.startsWith("function ")) {
 			if(currentFunction!==null) {
-				
+				if(currentFunction.codeLines.length==0 ||
+						!currentFunction.codeLines[currentFunction.codeLines.length-1].text=='}')
+				{
+					throw ["Function must end with a '}'",c];
+				}
+			}
+			currentFunctionLabels = [];
+			
+			s = s.substring(9); // Take off "function "
+			i = s.indexOf("(");
+			if(i<0) {
+				throw ["Expected opening parenthesis",c];
+			}
+			var j = s.indexOf(")",i);
+			if(j<0) {
+				throw ["Expected closing parenthesis",c];
+			}
+			if(s.substring(j+1)!='{') {
+				throw ["Expected '{' after ')'",c];
 			}
 		}
 		
