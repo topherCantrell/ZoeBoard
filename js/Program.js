@@ -100,6 +100,10 @@ exports.load = function(name) {
 			if(s.substring(j+1)!='{') {
 				throw ["Expected '{' after ')'",c];
 			}
+			
+			currentFunction = {"name" : s.substring(0,i)};
+			// Find function named
+			
 		}
 		
 		console.log(":"+s+":");
