@@ -18,6 +18,9 @@ here:
 
 }
 
+function test(x,y) {
+}
+
 function PUSH() {
 here:
   setSolid(2)

@@ -30,29 +30,48 @@ function removeSpaces(s) {
 
 exports.load = function(name) {
 	
-	var ret = {}
+	var ret = { // new Program
+			"globalLines" : [],
+			"functions" : []
+	}
 	
-	var contents = fs.readFileSync(name,'utf8');
-	var lines = contents.split('\n');
+	// Method to find a function in a program
+	ret.findFunction = function(name) {
+		for(var x=0;x<this.functions.length;++x) {
+			if(this.functions[x].name == name) {
+				return x;
+			}
+		}		
+		return -1;
+	};
 	
-	ret.globalLines = [];
-	ret.functions = [];	
+	// Method to find a global variable
+	ret.findGlobal = function(name) {
+		return this.vars.indexOf(name);
+	};
+	
+	// Read the raw lines
+	var lines = fs.readFileSync(name,'utf8').split('\n');;
 	
 	var currentFunction = null;
 	var currentFunctionLabels = [];
 	
 	for(var x=0;x<lines.length;++x) {
-		var raw = lines[x];
-		var s = raw.trim();
+		var s = lines[x].trim();
+		
+		// Pull out comments
 		var i = s.indexOf("//");
 		if(i>=0) {
 			s = s.substring(0,i).trim();
 		}
+		
+		// Ignore blank lines
 		if(s.length==0) continue;
 		
+		// Proper scanning
 		s = removeSpaces(s);
-		var c = {"text":s};
 		
+		// Handle included files
 		if(s.startsWith("include ")) {
 			var incName = s.substring(8);
 			var inc = exports.load(incName);
@@ -61,6 +80,11 @@ exports.load = function(name) {
 			continue;
 		}
 		
+		var c = { // new CodeLine
+		    "text":s
+		};
+		
+		// Handle labels within a function
 		i = s.indexOf(':');
 		if(i>=0) {
 			if(i!=s.length-1) {
@@ -78,7 +102,9 @@ exports.load = function(name) {
 			c.isLabel = true;
 		}
 		
+		// Handle starting a new function
 		if(s.startsWith("function ")) {
+			
 			if(currentFunction!==null) {
 				if(currentFunction.codeLines.length==0 ||
 						!currentFunction.codeLines[currentFunction.codeLines.length-1].text=='}')
@@ -101,12 +127,40 @@ exports.load = function(name) {
 				throw ["Expected '{' after ')'",c];
 			}
 			
-			currentFunction = {"name" : s.substring(0,i)};
-			// Find function named
+			currentFunction = { // new Function()
+					"name" : s.substring(0,i),
+					"codeLines" : [],
+					"arguments" : [],
+					"isEvent" : false
+			};
 			
+			if(ret.findFunction(currentFunction.name)>=0) {
+				throw ["Function name already exists",c];
+			}
+			
+			ret.functions.push(currentFunction);
+			
+			// Count the arguments
+			var args = s.substring(i+1,j).split(",");
+			for(var y=0;y<args.length;++y) {
+				if(args[y].length>0) {
+					currentFunction.arguments.push(args[y]);
+				}
+			}
+			
+			// Event handlers may have no arguments
+			if(currentFunction.name == currentFunction.name.toUpperCase()) {
+				currentFunction.isEvent = true;
+				if(currentFunction.arguments.length!==0) {
+					throw ["Event functions can take no arguments",c];
+				}
+			}
+			
+		} else if(currentFunction===null) {
+			ret.globalLines.push(c);
+		} else {
+			currentFunction.codeLines.push(c);
 		}
-		
-		console.log(":"+s+":");
 		
 	}
 	
