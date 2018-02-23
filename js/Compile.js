@@ -6,7 +6,6 @@ function hoistVars(lines) {
 	for(var x=lines.length-1;x>=0;x=x-1) {
 		var c = lines[x];
 		if(c.text.startsWith("var ")) {
-			console.log(c.text);
 			var s = c.text;
 			var i = s.indexOf("=");
 			if(i>=0) s=s.substring(0,i);
@@ -28,6 +27,21 @@ function hoistVars(lines) {
 	return ret;
 }
 
+function compileFunction(fun, firstPass) {
+	
+	for(var x=0;x<fun.codeLines.length;++x) {
+		var c = fun.codeLines[x];
+		if(c.isLabel) continue;
+	}
+	
+	if(c.text.startsWith("PAUSE(")) {
+		throw ["Unimplemented",c];
+	}
+	
+	throw ["Unknown",c];
+	
+}
+
 exports.doCompile = function(prog) {
 	
 	prog.vars = hoistVars(prog.globalLines);
@@ -43,8 +57,26 @@ exports.doCompile = function(prog) {
 	// TODO Read the "configure" (DSL specific)
 	// TODO Check the "init" function (DSL specific)
 	
+	// Pre-process the highlevel language constructs 
 	pre.preprocess(prog);
 	
+	// First pass ... build the addresses
+	var address = 0;
+	for(x=0;x<prog.functions.length;++x) {
+		var fun = prog.functions[x];
+		compileFunction(fun,true);
+		for(var y=0;y<fun.codeLines.length;++y) {
+			var c = fun.codeLines[y];
+			c.address = address;
+			address = address + c.data.length;
+		}
+	}
+	
+	// Second pass ... now we have the addresses
+	for(x=0;x<prog.functions.length;++x) {
+		var fun = prog.functions[x];
+		compileFunction(fun,false);
+	}
 	
 };
 

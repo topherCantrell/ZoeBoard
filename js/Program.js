@@ -81,7 +81,10 @@ exports.load = function(name) {
 		}
 		
 		var c = { // new CodeLine
-		    "text":s
+		    "text":s,
+		    "data":[],
+		    "changed": false,
+		    "isLabel":false
 		};
 		
 		// Handle labels within a function
