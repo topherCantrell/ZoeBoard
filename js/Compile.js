@@ -1,8 +1,29 @@
+pre = require("./Preprocessor");
 
 function hoistVars(lines) {
 	var ret = []
 	
-	// TODO
+	for(var x=lines.length-1;x>=0;x=x-1) {
+		var c = lines[x];
+		if(c.text.startsWith("var ")) {
+			console.log(c.text);
+			var s = c.text;
+			var i = s.indexOf("=");
+			if(i>=0) s=s.substring(0,i);
+			s = s.substring(4);
+			if(ret.indexOf(s)>=0) {
+				throw ["Var already defined",c];
+			}
+			ret.push(s);
+			if(i>=0) {
+				// This is an assignment ... keep the X=Y part
+				c.text = c.text.substring(4);
+				c.changed = true;				
+			} else {				
+				lines.splice(x,1);
+			}
+		}
+	}
 	
 	return ret;
 }
@@ -19,8 +40,10 @@ exports.doCompile = function(prog) {
 		throw ["Not allowed in global area",prog.globalLines[0]];
 	}
 	
-	// TODO Read the "configure"
-	// TODO Check the "init" function
+	// TODO Read the "configure" (DSL specific)
+	// TODO Check the "init" function (DSL specific)
+	
+	pre.preprocess(prog);
 	
 	
 };
