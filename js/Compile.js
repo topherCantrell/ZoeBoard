@@ -1,5 +1,7 @@
 pre = require("./Preprocessor");
 
+OpPAUSE = require("./OpPAUSE");
+
 function hoistVars(lines) {
 	var ret = []
 	
@@ -35,7 +37,7 @@ function compileFunction(fun, firstPass) {
 	}
 	
 	if(c.text.startsWith("PAUSE(")) {
-		throw ["Unimplemented",c];
+		OpPAUSE.parse(c, firstPass);
 	}
 	
 	throw ["Unknown",c];
