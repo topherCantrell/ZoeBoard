@@ -33,14 +33,16 @@ function compileFunction(fun, firstPass) {
 	
 	for(var x=0;x<fun.codeLines.length;++x) {
 		var c = fun.codeLines[x];
-		if(c.isLabel) continue;
-	}
+		if(c.isLabel) continue;	
 	
-	if(c.text.startsWith("PAUSE(")) {
-		OpPAUSE.parse(c, firstPass);
-	}
+		if(c.text.startsWith("PAUSE(")) {
+			OpPAUSE.parse(c, firstPass);
+			continue;
+		}
+		
+		throw {"message":"Unknown","line":c};
 	
-	throw ["Unknown",c];
+	}	
 	
 }
 

@@ -3,4 +3,9 @@ var program = require('./Program');
 
 var prog = program.load("New.zoe");
 
-comp.doCompile(prog);
+try {
+    comp.doCompile(prog);
+} catch(e) {
+	console.log(e);
+	throw e;
+}
