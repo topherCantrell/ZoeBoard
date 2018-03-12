@@ -13,7 +13,11 @@ function hoistVars(lines) {
 			if(i>=0) s=s.substring(0,i);
 			s = s.substring(4);
 			if(ret.indexOf(s)>=0) {
-				throw ["Var already defined",c];
+				throw {
+					"name" :    "Compile Error",
+					"message":  "Var already defined",
+					"codeLine": c
+				};
 			}
 			ret.push(s);
 			if(i>=0) {
