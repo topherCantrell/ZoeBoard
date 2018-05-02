@@ -1,5 +1,11 @@
 // Under-glow 6+6+20+25+20+6+6 = 89
   
+// Fade on to red. Hold
+// Fade out to black.
+// Fade on to blue. Hold
+// Fade out to black.
+// Chaser (alternates CCW/CW each pass)
+// Repeat
 function init() {
   
     configure (out=D3, length=89)

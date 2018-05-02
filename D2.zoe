@@ -1,5 +1,9 @@
 // Little sign 24x8 = 192
 
+// 5858 in red. Hold.
+// Fizzle to gold. Hold.
+// Repeat
+
 function init() {
 
     configure (out=D2, length=192)

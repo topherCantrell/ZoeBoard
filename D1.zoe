@@ -1,12 +1,17 @@
 // Big sign 32x8 = 256
 
+// 5858 scrolls on vertically. Holds.
+// Red ghost chases the letters off horizontally right.
+// Pacman chases blue ghost back horizontally left.
+// Repeat
+
 function init() {
   
     configure (out=D1, length=256)
     
     defineColor(color=0,   W=0, R=0,  G=0,   B=0)   
     
-    defineColor(color=1,   W=0, R=0,  G=0,   B=20)
+    defineColor(color=1,   W=0, R=0,  G=0,   B=20)    
         
     var sign = [
     	"........ ........ ........ ........",
