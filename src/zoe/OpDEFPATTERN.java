@@ -6,6 +6,7 @@ import dsl.Parameters;
 
 public class OpDEFPATTERN {
 	
+	// defPattern(...)
 	public static final int OPCODE = 0x0A;
 	
 	public static void parse(CodeLine c, boolean firstPass) {
@@ -40,6 +41,7 @@ public class OpDEFPATTERN {
 			c.data.add(width);
 			c.data.add(height);
 			
+			// TODO allow for two-digit colors
 			for(int x=0;x<data.length();++x) {
 				char h = data.charAt(x);
 				if(h=='.') {

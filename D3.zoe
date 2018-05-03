@@ -6,11 +6,23 @@
 // Fade out to black.
 // Chaser (alternates CCW/CW each pass)
 // Repeat
+
+configure(D3,89)
+
 function init() {
-  
-    configure (out=D3, length=89)
-      
-    defineColor(color=0,   W=0, R=0,   G=0,   B=0)    
-    defineColor(color=1,   W=0, R=0,  G=100,   B=100) 
-      
+        
+    defColor(0, 0,0,0)   
+    
+    defColor(1, 0,0,20)    
+    defColor(2, 0,20,0)
+    
+    here:    	
+    setPixel(0,1)
+    setPixel(1,2)
+    PAUSE(1000)
+    setPixel(0,2)
+    setPixel(1,1)
+    PAUSE(1000)
+    goto here    
+
 }

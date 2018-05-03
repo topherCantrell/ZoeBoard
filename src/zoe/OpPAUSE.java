@@ -5,6 +5,7 @@ import dsl.CompileException;
 import dsl.Parameters;
 import dsl.basevm.Operand;
 
+// PAUSE(...)
 public class OpPAUSE {
 	
 	public static final int OPCODE = 0x08;

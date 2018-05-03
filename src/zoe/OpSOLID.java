@@ -5,6 +5,7 @@ import dsl.CompileException;
 import dsl.Parameters;
 import dsl.basevm.Operand;
 
+//setSolid(...)
 public class OpSOLID {
 	
 	public static final int OPCODE = 0x0C;

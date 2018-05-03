@@ -1,5 +1,6 @@
 package zoe;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,7 +63,7 @@ public class Compile {
 		if(init.arguments.size()!=0) {
 			throw new CompileException("The 'init()' function must take no arguments",null);
 		}
-						
+										
 		Preprocessor pre = new Preprocessor(prog);
 		pre.preprocess();
 		
@@ -237,13 +238,39 @@ public class Compile {
 	public static void main(String[] args) throws Exception {
 		
 		try {
+			
 			// Load the lines of code
-			Program prog = Program.load("New.zoe");
-			
+			Program prog = Program.load("D1.zoe");			
+			PrintStream ps = new PrintStream("spin/ProgramDataD1.spin");
 			Compile comp = new Compile();		
-			comp.doCompile(prog);
+			comp.doCompile(prog);			
+			ToSpin.toSpin(prog,ps);
+			ps.flush();
+			ps.close();
 			
-			ToSpin.toSpin(prog);
+			prog = Program.load("D2.zoe");			
+			ps = new PrintStream("spin/ProgramDataD2.spin");
+			comp = new Compile();		
+			comp.doCompile(prog);			
+			ToSpin.toSpin(prog,ps);
+			ps.flush();
+			ps.close();
+			
+			prog = Program.load("D3.zoe");			
+			ps = new PrintStream("spin/ProgramDataD3.spin");
+			comp = new Compile();		
+			comp.doCompile(prog);			
+			ToSpin.toSpin(prog,ps);
+			ps.flush();
+			ps.close();
+			
+			prog = Program.load("D4.zoe");			
+			ps = new PrintStream("spin/ProgramDataD4.spin");
+			comp = new Compile();		
+			comp.doCompile(prog);			
+			ToSpin.toSpin(prog,ps);
+			ps.flush();
+			ps.close();
 		
 		} catch (CompileException e) {
 			//System.out.println(e.getMessage());

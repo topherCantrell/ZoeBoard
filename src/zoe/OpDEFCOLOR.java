@@ -7,6 +7,7 @@ import dsl.basevm.Operand;
 
 public class OpDEFCOLOR {
 	
+	// defColor(...)
 	public static final int OPCODE = 0x09;
 	
 	public static void parse(CodeLine c, boolean firstPass) {

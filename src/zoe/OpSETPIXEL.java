@@ -5,6 +5,7 @@ import dsl.CompileException;
 import dsl.Parameters;
 import dsl.basevm.Operand;
 
+// setPixel(...)
 public class OpSETPIXEL {
 	
 	public static final int OPCODE = 0x0B;

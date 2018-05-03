@@ -6,7 +6,7 @@ pub init(pnt,ioPin,numPixels,bitsToSend,addr_eventInput,addr_palette,addr_patter
 
    eventBufferPtr := pnt
    pn             := ioPin
-   par_pixCount   := 8 'numPixels
+   par_pixCount   := numPixels
    numBitsToSend  := bitsToSend
    eventInput     := addr_eventInput
    par_palette    := addr_palette
@@ -59,8 +59,9 @@ mainLoop
 command 
         rdbyte  c,programCounter         ' Next ...         
         add     programCounter,#1        ' ... opcode
-        cmp     c,#13 wz,wc              ' Valid opcode?
+        cmp     c,#14 wz,wc              ' Valid opcode?
   if_a  mov     c,#0                     ' No ... show the error
+        mov     comHold, c               ' Flex grid vs old grid ... we'll switch on this
         add     c,#comTable              ' Offset into COM table
         jmp     c                        ' Execute the command
 
@@ -168,6 +169,7 @@ comTable
         jmp     #comSETPIXEL             ' 11
         jmp     #comSETSOLID             ' 12
         jmp     #comDRAWPATTERN          ' 13
+        jmp     #comDRAWPATTERN          ' 14
 
 ' -------------------------------------------------------------------------------------------------
 
@@ -537,16 +539,43 @@ allRows
 allOfRow
         rdbyte  val,p                    ' Get the pixel value
         add     p,#1                     ' Next in pattern 
-        add     val,c                    ' Color offset            
+        add     val,c                    ' Color offset
+
+        ' TODO clipping
+        
+        cmp     comHold, #14 wz          ' Regular grid?
+  if_z  jmp     #mappingFlex
         call    #mapPixel                ' Set the pixel
+        jmp     #mapDone
+mappingFlex
+        call    #mapPixelFlex
+mapDone        
         add     asm_x,#1                 ' Next X on row
         djnz    tmp,#allOfRow            ' Do all the pixels on the row
         sub     asm_x,width              ' Back up to beginning of row
         add     asm_y,#1                 ' Down to next row
         djnz    tmp2,#allRows            ' Do all the rows
-        jmp     #command                 ' Run till pause        
+        jmp     #command                 ' Run till pause
+
+mapPixelFlex
+' Down, up, down -- left to right
+
+' if even, pixel = x*8 + y
+' if odd,  pixel = x*8 + (7-y)
+
+        mov     p2,asm_x                 ' Start with ...
+        shl     p2,#3                    ' ... x*8
+        and     asm_x,#1 wz,nr           ' Check the odd/even
+  if_z  add     p2,asm_y                 ' Even rows ... just add the Y
+  if_nz add     p2,#7                    ' Odd rows ...
+  if_nz sub     p2,asm_y                 ' ... add (7-y)
+        add     p2,par_buffer            ' Offset into buffer
+        wrbyte  val,p2                   ' Write the pixel
+mapPixelFlex_ret
+        ret
 
 mapPixel
+' Left to right, top to bottom, like reading
 ' TODO for now, we'll assume left to right 8x8 plates. In the future we need a way
 ' of handling random geometries
         mov     p2,#0                    ' Start at pixel 0
@@ -704,6 +733,8 @@ ONE              long 1            ' Used ...
 ZERO             long 0            ' ... in ...
 ERRCOLOR0        long $00_00_00_08 ' ... error ...
 ERRCOLOR1        long $00_08_08_08 ' ... reporting
+
+comhold          long 0
 
       FIT
       

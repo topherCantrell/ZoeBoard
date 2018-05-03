@@ -7,6 +7,7 @@ import dsl.basevm.Operand;
 
 public class OpDRAWPATTERN {
 	
+	// drawPattern(...)
 	public static final int OPCODE = 0x0D;
 	
 	public static void parse(CodeLine c, boolean firstPass) {

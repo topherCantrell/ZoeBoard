@@ -6,16 +6,23 @@
 // slow throbbing black-gold
 // eight (4 per side) beads moving from center out
   
-function init() {
-  
-    configure (out=D4, length=147)
-      
-    defineColor(color=0,   W=0, R=0,   G=0,   B=0)    // Color 0  : Black   
-    defineColor(color=1,   W=0, R=100, G=0,   B=0)    // Color 1  : Red
-    defineColor(color=2,   W=0, R=120, G=80,  B=4)   // Color 2  : Yellow(ish)     
-  
+configure(D4,147)
 
+function init() {
+        
+    defColor(0, 0,0,0)   
+    
+    defColor(1, 0,0,20)    
+    defColor(2, 0,20,0)
+    
+    here:    	
+    setPixel(0,1)
+    setPixel(1,2)
+    PAUSE(1000)
+    setPixel(0,2)
+    setPixel(1,1)
+    PAUSE(1000)
+    goto here    
 
 }
- 
   

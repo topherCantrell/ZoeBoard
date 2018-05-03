@@ -133,20 +133,20 @@ public class ToSpin {
 		
 	}
 	
-	public static void toSpin(Program prog) {
+	public static void toSpin(Program prog, PrintStream ps) {
 		
-		writeHeader(prog,System.out);
+		writeHeader(prog,ps);
 		
-		System.out.println();
-		System.out.println("' Code");
-		System.out.println();
+		ps.println();
+		ps.println("' Code");
+		ps.println();
 		
 		for(Function fun : prog.functions) {
-			System.out.println("' ## Function "+fun.name);
+			ps.println("' ## Function "+fun.name);
 			for(CodeLine c : fun.codeLines) {
 				String out = "";
 				if(c.isLabel) {
-					System.out.println("' "+c.text+":");
+					ps.println("' "+c.text+":");
 					continue;
 				}
 				if(c.data.size()>0) {
@@ -164,9 +164,9 @@ public class ToSpin {
 				} else {
 					out = out + " ' "+c.originalText;
 				}
-				System.out.println(out);				
+				ps.println(out);				
 			}
-			System.out.println();
+			ps.println();
 		}
 		
 	}

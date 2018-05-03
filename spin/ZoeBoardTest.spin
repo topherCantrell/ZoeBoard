@@ -34,9 +34,9 @@ pub StripTest
   PauseMSec(1000)
 
   STRIP.draw(2, @colors, @pixels1, pinD1,  256)
-  STRIP.draw(2, @colors, @pixels2, pinD2,  8)
-  STRIP.draw(2, @colors, @pixels3, pinD3,  8)
-  STRIP.draw(2, @colors, @pixels4, pinD4,  8)
+  STRIP.draw(2, @colors, @pixels2, pinD2,  256)
+  STRIP.draw(2, @colors, @pixels3, pinD3,  256)
+  STRIP.draw(2, @colors, @pixels4, pinD4,  256)
      
   repeat
     PauseMSec(5000)       
