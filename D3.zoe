@@ -16,6 +16,8 @@ function init() {
     defColor(1, 0,0,20)    
     defColor(2, 0,20,0)
     
+    setPixel(88,2)
+    
     here:    	
     setPixel(0,1)
     setPixel(1,2)

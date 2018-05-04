@@ -248,6 +248,7 @@ public class Compile {
 			ps.flush();
 			ps.close();
 			
+			
 			prog = Program.load("D2.zoe");			
 			ps = new PrintStream("spin/ProgramDataD2.spin");
 			comp = new Compile();		
@@ -271,6 +272,7 @@ public class Compile {
 			ToSpin.toSpin(prog,ps);
 			ps.flush();
 			ps.close();
+			
 		
 		} catch (CompileException e) {
 			//System.out.println(e.getMessage());
