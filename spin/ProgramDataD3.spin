@@ -49,17 +49,11 @@ zoeProgram
 ' Code
 
 ' ## Function init
-    byte $09,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 '     defColor(0, 0,0,0)   
-    byte $09,$00,$01,$00,$00,$00,$00,$00,$00,$00,$14 '     defColor(1, 0,0,20)    
-    byte $09,$00,$02,$00,$00,$00,$14,$00,$00,$00,$00 '     defColor(2, 0,20,0)
-    byte $0B,$00,$58,$00,$02     '     setPixel(88,2)
+    byte $09,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00 '     defColor(0, 0,0,0)    
+    byte $09,$00,$01,$00,$00,$00,$28,$00,$50,$00,$64 '     defColor(1, 80,40,100)    
 ' here:
-    byte $0B,$00,$00,$00,$01     '     setPixel(0,1)
-    byte $0B,$00,$01,$00,$02     '     setPixel(1,2)
-    byte $08,$03,$E8             '     PAUSE(1000)
-    byte $0B,$00,$00,$00,$02     '     setPixel(0,2)
-    byte $0B,$00,$01,$00,$01     '     setPixel(1,1)
-    byte $08,$03,$E8             '     PAUSE(1000)
-    byte $03,$FF,$E3             '     goto here    
+    byte $0C,$00,$01             '     setSolid(1)
+    byte $08,$03,$E8             '     PAUSE(1000)    
+    byte $03,$FF,$F7             '     goto here    
     byte $06                     '# return
 

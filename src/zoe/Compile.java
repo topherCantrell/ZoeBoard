@@ -121,6 +121,11 @@ public class Compile {
 				continue;
 			}
 			
+			if(c.text.startsWith("drawPatternFlex(")) {
+				OpDRAWPATTERNFLEX.parse(c, firstPass);
+				continue;
+			}
+			
 			// Base VM Commands				
 			
 			if(c.text.startsWith("if(")) {
